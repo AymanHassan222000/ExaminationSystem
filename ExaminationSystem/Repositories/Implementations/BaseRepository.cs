@@ -3,7 +3,6 @@ using ExaminationSystem.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace ExaminationSystem.Repositories.Implementations;
 
@@ -24,10 +23,16 @@ public class BaseRepository<T> where T : BaseModel
         return entity;
     }
 
-    public IQueryable<T> GetAll()
+    public IQueryable<T> GetAll(Expression<Func<T,bool>>? criteria = null)
     {
-        var entities = _dbSet.Where(e => !e.IsDeleted);
-        return entities;
+        var query = _dbSet.Where(e => !e.IsDeleted);
+
+        if (criteria != null) 
+        {
+            query = query.Where(criteria);
+        }
+
+        return query;
     }
 
     public async Task<T?> GetByIdAsync(int id)

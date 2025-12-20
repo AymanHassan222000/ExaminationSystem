@@ -17,7 +17,7 @@ public class Exam : BaseModel
     public int CourseID { get; set; }
     public Course Course { get; set; }
 
-    public ICollection<Question> Questions = new List<Question>();
+    public ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public ICollection<ExamQuestion> ExamQuestions { get; set; } = new List<ExamQuestion>();
 }

@@ -2,17 +2,18 @@
 using ExaminationSystem.DTOs.ExamDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminationSystem.Services;
 
 public class ExamService
 {
-    ExamRepository _examRepo;
+    BaseRepository<Exam> _examRepo;
     BaseRepository<Course> _courseRepo;
     BaseRepository<ExamQuestion> _examQuestionRepo;
     public ExamService()
     {
-        _examRepo = new ExamRepository();
+        _examRepo = new BaseRepository<Exam>();
         _courseRepo = new BaseRepository<Course>();
         _examQuestionRepo = new BaseRepository<ExamQuestion>();
     }
@@ -123,24 +124,33 @@ public class ExamService
         await _examRepo.DeleteAsync(exam);
     }
 
+    //Assign Questions to Exam
+    public async Task AssignQuestionsToExamAsync(AssignQuestionsToExamDTO dto)
+    {
+        var exam = await _examRepo.GetByIdAsync(dto.ExamID);
+
+        if (exam == null)
+            throw new Exception($"No exam was found with ID = {dto.ExamID}");
+
+        var NumberOfQuestionsAdded = await _examQuestionRepo.GetAll(m => m.ExamID == dto.ExamID).CountAsync();
+
+        if (dto.QuestionIDs.Count() > exam.NumberOfQuestions || 
+            dto.QuestionIDs.Count > (exam.NumberOfQuestions - NumberOfQuestionsAdded))
+            throw new Exception("Can't Add All This Questions");
+
+        foreach (var questionID in dto.QuestionIDs)
+        {
+            bool IsAlreadyAssigned = await _examQuestionRepo.AnyAsync(eq => eq.QuestionID == questionID);
+
+            if (IsAlreadyAssigned)
+                continue;
+
+            await _examQuestionRepo.CreateAsync(new ExamQuestion { QuestionID = questionID ,ExamID = dto.ExamID});
+        }
+    }
+
     //TODO:Assign Question to Exam
-    //public async Task AssignQuestionsToExamAsync(AssignQuestionsToExamDTO dto)
-    //{
-    //    var exam = await _examRepo.GetByIdAsync(dto.ExamID);
 
-    //    if (exam == null)
-    //        throw new Exception($"No exam was found with ID = {dto.ExamID}");
-
-    //    foreach (var questionID in dto.QuestionIDs)
-    //    {
-    //        bool IsAlreadyAssigned = await _examQuestionRepo.AnyAsync(eq => eq.QuestionID == questionID);
-
-    //        if (IsAlreadyAssigned)
-    //            continue;
-
-    //        await _examQuestionRepo.CreateAsync(new ExamQuestion { QuestionID = questionID });
-    //    }
-    //}
     //TODO:UnAssign Question to Exam
 
 }

@@ -17,7 +17,6 @@ public class Course : BaseModel
     [ForeignKey("InstructorID")]
     public Instructor? Instructor { get; set; }
 
-
-    public ICollection<Exam> Exams = new List<Exam>();
-    public ICollection<StudentCourse> StudentCourses = new List<StudentCourse>();
+    public ICollection<Exam> Exams { get; set; } = new List<Exam>();
+    public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
 }
