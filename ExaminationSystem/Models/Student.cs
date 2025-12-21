@@ -2,5 +2,5 @@
 
 public class Student : User
 {
-    public ICollection<StudentCourse> StudentCourses = new List<StudentCourse>();
+    public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
 }

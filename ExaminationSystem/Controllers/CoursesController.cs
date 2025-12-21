@@ -1,6 +1,4 @@
 ﻿using ExaminationSystem.DTOs.CourseDTOs;
-using ExaminationSystem.Models;
-using ExaminationSystem.Repositories.Implementations;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.CourseViewModels;
 using ExaminationSystem.ViewModels.InstructorViewModels;
@@ -12,11 +10,9 @@ namespace ExaminationSystem.Controllers;
 [Route("[Controller]/[Action]")]
 public class CoursesController : ControllerBase
 {
-    private BaseRepository<Course> _courseRebository;
     private CourseService _courseService;
     public CoursesController()
     {
-        _courseRebository = new BaseRepository<Course>();
         _courseService = new CourseService();
     }
 
@@ -129,6 +125,16 @@ public class CoursesController : ControllerBase
     public async Task DeleteCourseSoftAsync(int id)
     {
         await _courseService.DeleteCourseSoftAsync(id);
+    }
+
+    [HttpPost]
+    public async Task EnrollInCourse(EnrollInCourseViewModel vm)
+    {
+        await _courseService.AssignStudentToCourse(new EnrollInCourseDTO
+        {
+            StudentID = vm.StudentID,
+            CourseID = vm.CourseID
+        });
     }
 
 }

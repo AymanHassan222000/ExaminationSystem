@@ -2,6 +2,7 @@
 using ExaminationSystem.DTOs.IntructorDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
+using System.Threading.Tasks;
 
 namespace ExaminationSystem.Services;
 
@@ -10,11 +11,15 @@ public class CourseService
     BaseRepository<Course> _courseRepo;
     BaseRepository<Exam> _examRepo;
     BaseRepository<Instructor> _instructorRepo;
+    BaseRepository<StudentCourse> _studentCourseRepo;
+    BaseRepository<Student> _studentRepo;
     public CourseService()
     {
         _courseRepo = new BaseRepository<Course>();
         _examRepo = new BaseRepository<Exam>();
         _instructorRepo = new BaseRepository<Instructor>();
+        _studentCourseRepo = new BaseRepository<StudentCourse>();
+        _studentRepo = new BaseRepository<Student>();
     }
 
     public async Task<CourseDetailsDTO> AddCourseAsync(CreateCourseDTO dto)
@@ -129,16 +134,27 @@ public class CourseService
             throw new Exception("Deleted was failed");
     }
 
-    //public void AssignExamToCourse(int courseID, int examID)
-    //{
-    //    if (_courseRepo.IsCourseExist(courseID))
-    //    {
-    //        throw new Exception("Course Not Found!");
-    //    }
-    //    if (_examRepo.IsExamExist(examID))
-    //    {
-    //        throw new Exception("Exam Not Found!");
-    //    }
-    //    //TODO: Logic to assign exam to course
-    //}
+    public async Task AssignStudentToCourse(EnrollInCourseDTO dto)
+    {
+        //Check if Course is exist
+        var isCourseExist = await _courseRepo.AnyAsync(c => c.ID == dto.CourseID);
+
+        if (!isCourseExist)
+            throw new Exception("This Course is Not Exist.");
+
+        //check if student is exist
+        var isStudentExist = await _studentRepo.AnyAsync(s => s.ID == dto.StudentID);
+
+        if (!isStudentExist)
+            throw new Exception("This Student is Not Exist.");
+
+        //check if student is assign to this course before 
+        var isStudentEnrolled = await _studentCourseRepo.AnyAsync(m => m.StudetnID == dto.StudentID && m.CourseID == dto.CourseID);
+
+        if (isStudentEnrolled)
+            throw new Exception("This Student is Already Enrolled.");
+
+        //Assign Student to Course
+        await _studentCourseRepo.CreateAsync(new StudentCourse { StudetnID = dto.StudentID,CourseID = dto.CourseID});
+    }
 }
