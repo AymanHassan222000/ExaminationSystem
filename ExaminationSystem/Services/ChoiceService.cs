@@ -37,7 +37,7 @@ public class ChoiceService
             QuestionID = dto.QuestionID
         };
 
-        var result = await _choiceRepo.CreateAsync(choice);
+        var result = await _choiceRepo.AddAsync(choice);
 
         return new ChoiceDetailsDTO
         {

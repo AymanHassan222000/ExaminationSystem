@@ -29,7 +29,7 @@ public class QuestionService
             InstructorID = dto.InstructorID
         };
 
-        var result = await _questionRepo.CreateAsync(question);
+        var result = await _questionRepo.AddAsync(question);
 
         return new QuestionDetailsDTO
         {

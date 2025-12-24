@@ -116,7 +116,7 @@ public class ExamsController: ControllerBase
     [HttpPost]
     public async Task AssignQuestionsToExamAsync(AssignQuestionsToExamViewModel vm) 
     {
-        await _examService.AssignQuestionsToExamAsync(new AssignQuestionsToExamDTO 
+        await _examService.AssignQuestionsToExamManuallyAsync(new AssignQuestionsToExamDTO 
         {
             ExamID = vm.ExamID,
             QuestionIDs = vm.QuestionIDs

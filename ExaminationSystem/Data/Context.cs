@@ -9,6 +9,7 @@ public class Context : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
+
         optionsBuilder.UseSqlServer("Server=.;Database=ExaminationSystemDB;Trusted_Connection=True;TrustServerCertificate=True;")
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .LogTo(log => Debug.WriteLine(log),LogLevel.Information)
@@ -27,6 +28,10 @@ public class Context : DbContext
             .HasIndex(e => new { e.ExamID, e.QuestionID })
             .IsUnique();
 
+        modelBuilder.Entity<ExamAttempt>()
+            .HasIndex(e => new { e.StudentID, e.ExamID })
+            .IsUnique();
+
         modelBuilder.Entity<Choice>()
             .HasIndex(c => c.QuestionID)
             .IsUnique()
@@ -41,5 +46,6 @@ public class Context : DbContext
     public DbSet<Question> Questions { get; set; }
     public DbSet<ExamQuestion> ExamQuestions { get; set; }
     public DbSet<Choice> Choices { get; set; }
-    public DbSet<StudentAnswer> StudentAnswers { get; set; }
+    public DbSet<ExamAttempt> ExamAttempts { get; set; }
+    public DbSet<ExamAttemptAnswer> ExamAttemptAnswers { get; set; }
 }

@@ -35,7 +35,7 @@ public class ExamService
             CourseID = dto.CourseID
         };
 
-        var result = await _examRepo.CreateAsync(exam);
+        var result = await _examRepo.AddAsync(exam);
 
         return new ExamDetailsDTO
         {
@@ -124,8 +124,8 @@ public class ExamService
         await _examRepo.DeleteAsync(exam);
     }
 
-    //Assign Questions to Exam
-    public async Task AssignQuestionsToExamAsync(AssignQuestionsToExamDTO dto)
+    //Assign Questions to Exam Manully
+    public async Task AssignQuestionsToExamManuallyAsync(AssignQuestionsToExamDTO dto)
     {
         var exam = await _examRepo.GetByIdAsync(dto.ExamID);
 
@@ -145,12 +145,11 @@ public class ExamService
             if (IsAlreadyAssigned)
                 continue;
 
-            await _examQuestionRepo.CreateAsync(new ExamQuestion { QuestionID = questionID ,ExamID = dto.ExamID});
+            await _examQuestionRepo.AddAsync(new ExamQuestion { QuestionID = questionID ,ExamID = dto.ExamID});
         }
     }
 
-    //TODO:Assign Question to Exam
+    //TODO:Assign Questions to Exam Auto
 
-    //TODO:UnAssign Question to Exam
 
 }

@@ -16,7 +16,7 @@ public class BaseRepository<T> where T : BaseModel
         _dbSet = _context.Set<T>();
     }
 
-    public async Task<T> CreateAsync(T entity)
+    public async Task<T> AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
@@ -38,6 +38,11 @@ public class BaseRepository<T> where T : BaseModel
     public async Task<T?> GetByIdAsync(int id)
     {
         return await _dbSet.FirstOrDefaultAsync(e => e.ID == id && !e.IsDeleted);
+    }
+
+    public async Task<T?> FindAsync(Expression<Func<T, bool>> criteria) 
+    {
+        return await _dbSet.FirstOrDefaultAsync(criteria);
     }
 
     //public async Task<>

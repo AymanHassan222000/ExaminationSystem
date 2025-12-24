@@ -24,13 +24,11 @@ public class CourseService
 
     public async Task<CourseDetailsDTO> AddCourseAsync(CreateCourseDTO dto)
     {
-        //Cheack if Instructor ID is exist
         var instructor = await _instructorRepo.GetByIdAsync(dto.InstructorID);
 
         if (instructor == null)
             throw new Exception($"No instructor was found with ID = {dto.InstructorID}");
 
-        //Map DTO to Course
         Course course = new Course
         {
             Name = dto.Name,
@@ -39,8 +37,7 @@ public class CourseService
             InstructorID = dto.InstructorID
         };
 
-        //Add Course 
-        var result = await _courseRepo.CreateAsync(course);
+        var result = await _courseRepo.AddAsync(course);
 
         return new CourseDetailsDTO
         {
@@ -136,25 +133,21 @@ public class CourseService
 
     public async Task AssignStudentToCourse(EnrollInCourseDTO dto)
     {
-        //Check if Course is exist
         var isCourseExist = await _courseRepo.AnyAsync(c => c.ID == dto.CourseID);
 
         if (!isCourseExist)
             throw new Exception("This Course is Not Exist.");
 
-        //check if student is exist
         var isStudentExist = await _studentRepo.AnyAsync(s => s.ID == dto.StudentID);
 
         if (!isStudentExist)
             throw new Exception("This Student is Not Exist.");
 
-        //check if student is assign to this course before 
         var isStudentEnrolled = await _studentCourseRepo.AnyAsync(m => m.StudetnID == dto.StudentID && m.CourseID == dto.CourseID);
 
         if (isStudentEnrolled)
             throw new Exception("This Student is Already Enrolled.");
 
-        //Assign Student to Course
-        await _studentCourseRepo.CreateAsync(new StudentCourse { StudetnID = dto.StudentID,CourseID = dto.CourseID});
+        await _studentCourseRepo.AddAsync(new StudentCourse { StudetnID = dto.StudentID,CourseID = dto.CourseID});
     }
 }
