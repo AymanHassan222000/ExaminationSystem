@@ -13,9 +13,8 @@ public class Course : BaseModel
     public int Hours { get; set; }
     public int InstructorID { get; set; }
 
-    [JsonIgnore]
     [ForeignKey("InstructorID")]
-    public Instructor? Instructor { get; set; }
+    public Instructor Instructor { get; set; }
 
     public ICollection<Exam> Exams { get; set; } = new List<Exam>();
     public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();

@@ -5,7 +5,7 @@ namespace ExaminationSystem.DTOs.ExamDTOs;
 
 public class ExamDetailsDTO
 {
-    public int ExamID { get; set; }
+    public int ID { get; set; }
     public string Title { get; set; } = null!;
     public ExamTypes Types { get; set; }
     public int NumberOfQuestions { get; set; }

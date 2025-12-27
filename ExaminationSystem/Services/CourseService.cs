@@ -1,27 +1,35 @@
-﻿using ExaminationSystem.DTOs.CourseDTOs;
-using ExaminationSystem.DTOs.IntructorDTOs;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using ExaminationSystem.DTOs.CourseDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
-using System.Threading.Tasks;
 
 namespace ExaminationSystem.Services;
 
 public class CourseService
 {
     BaseRepository<Course> _courseRepo;
-    BaseRepository<Exam> _examRepo;
     BaseRepository<Instructor> _instructorRepo;
     BaseRepository<StudentCourse> _studentCourseRepo;
     BaseRepository<Student> _studentRepo;
-    public CourseService()
+    IMapper _mapper;
+    public CourseService(IMapper mapper)
     {
         _courseRepo = new BaseRepository<Course>();
-        _examRepo = new BaseRepository<Exam>();
         _instructorRepo = new BaseRepository<Instructor>();
         _studentCourseRepo = new BaseRepository<StudentCourse>();
         _studentRepo = new BaseRepository<Student>();
+        _mapper = mapper;
     }
 
+    public IEnumerable<CourseDetailsDTO> GetAllCourses()
+    {
+        var courses = _courseRepo.GetAll()
+                                 .ProjectTo<CourseDetailsDTO>(_mapper.ConfigurationProvider)
+                                 .OrderBy(m => m.Name)
+                                 .ToList();
+        return courses;
+    }
     public async Task<CourseDetailsDTO> AddCourseAsync(CreateCourseDTO dto)
     {
         var instructor = await _instructorRepo.GetByIdAsync(dto.InstructorID);
@@ -29,74 +37,36 @@ public class CourseService
         if (instructor == null)
             throw new Exception($"No instructor was found with ID = {dto.InstructorID}");
 
-        Course course = new Course
-        {
-            Name = dto.Name,
-            Description = dto.Description,
-            Hours = dto.Hours,
-            InstructorID = dto.InstructorID
-        };
+        var course = _mapper.Map<Course>(dto);
 
-        var result = await _courseRepo.AddAsync(course);
+        await _courseRepo.AddAsync(course);
 
-        return new CourseDetailsDTO
-        {
-            CourseID = result.ID,
-            CourseName = result.Name,
-            Description = result.Description,
-            Hours = result.Hours,
-            instructorInfo = new GetInstructorInfoDTO
-            {
-                InstructorID = result.InstructorID,
-                FirstName = instructor.FirstName,
-                LastName = instructor.LastName
-            }
-        };
-    }
-    public IEnumerable<CourseDetailsDTO> GetAllCourses()
-    {
-        return _courseRepo.GetAll().Select(e => new CourseDetailsDTO
-        {
-            CourseID = e.ID,
-            CourseName = e.Name,
-            Description = e.Description,
-            Hours = e.Hours,
-            instructorInfo = new GetInstructorInfoDTO
-            {
-                InstructorID = e.InstructorID,
-                FirstName = e.Instructor.FirstName,
-                LastName = e.Instructor.LastName
-            }
-        }).OrderBy(e => e.CourseName).ToList();
+        course.Instructor = instructor;
+
+        var courseDetails = _mapper.Map<CourseDetailsDTO>(course);
+
+        return courseDetails;
     }
 
     public async Task<CourseDetailsDTO> GetCourseByIDAsync(int id)
     {
-        var course = await _courseRepo.GetByIdAsync(id);
+        var course = await _courseRepo.GetByIdAsync(id, c => c.Instructor);
 
-        if (course == null) 
+        if (course == null)
             throw new Exception($"No course was found with ID = {id}");
 
-        var instructor = await _instructorRepo.GetByIdAsync(course.InstructorID);
+        var courseDetails = _mapper.Map<CourseDetailsDTO>(course);
 
-        return new CourseDetailsDTO
-        {
-            CourseID = course.ID,
-            CourseName = course.Name,
-            Description = course.Description,
-            Hours = course.Hours,
-            instructorInfo = new GetInstructorInfoDTO
-            {
-                InstructorID = course.InstructorID,
-                FirstName = instructor.FirstName,
-                LastName = instructor.LastName
-            }
-        };
-
+        return courseDetails;
     }
 
     public async Task<CourseDetailsDTO> UpdateCourseAsync(int courseID, UpdateCourseDTO updateCourseDTO)
     {
+        var courseIsExist = await _courseRepo.AnyAsync(m => m.ID == courseID);
+
+        if (!courseIsExist)
+            throw new Exception($"Not Found Course With ID {courseID}");
+
         var result = await _courseRepo.UpdateAsync(
         c => c.ID == courseID,
         s => s
@@ -148,6 +118,6 @@ public class CourseService
         if (isStudentEnrolled)
             throw new Exception("This Student is Already Enrolled.");
 
-        await _studentCourseRepo.AddAsync(new StudentCourse { StudetnID = dto.StudentID,CourseID = dto.CourseID});
+        await _studentCourseRepo.AddAsync(new StudentCourse { StudetnID = dto.StudentID, CourseID = dto.CourseID });
     }
 }

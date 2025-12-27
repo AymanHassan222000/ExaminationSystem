@@ -2,8 +2,6 @@
 
 public class GetInstructorInfoDTO
 {
-    public int InstructorID { get; set; }
-    public string FirstName { get; set; }
-    public string LastName{ get; set; }
-
+    public int ID { get; set; }
+    public string FullName { get; set; } = null!;
 }

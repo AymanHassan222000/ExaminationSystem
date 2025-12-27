@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.CourseDTOs;
+﻿using AutoMapper;
+using ExaminationSystem.DTOs.CourseDTOs;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.CourseViewModels;
 using ExaminationSystem.ViewModels.InstructorViewModels;
@@ -11,9 +12,11 @@ namespace ExaminationSystem.Controllers;
 public class CoursesController : ControllerBase
 {
     private CourseService _courseService;
-    public CoursesController()
+    private IMapper _mapper;
+    public CoursesController(IMapper mapper)
     {
-        _courseService = new CourseService();
+        _courseService = new CourseService(mapper);
+        _mapper = mapper;
     }
 
     //Add Course
@@ -23,38 +26,24 @@ public class CoursesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var courseDto = new CreateCourseDTO
-        {
-            Name = vm.Name,
-            Description = vm.Description,
-            Hours = vm.Hours,
-            InstructorID = vm.InstructorID
-        };
+        var createCourseDto = _mapper.Map<CreateCourseDTO>(vm);
 
-        var result = await _courseService.AddCourseAsync(courseDto);
+        var courseDetailsDto = await _courseService.AddCourseAsync(createCourseDto);
 
-        if (result == null) return BadRequest();
+        if (courseDetailsDto == null) return BadRequest();
 
-        return StatusCode(StatusCodes.Status201Created, result);
+        var courseDetailsVM = _mapper.Map<CourseDetailsViewModel>(courseDetailsDto);
+
+        return StatusCode(StatusCodes.Status201Created, courseDetailsVM);
     }
 
     [HttpGet]
-    public IEnumerable<CourseDetailsViewModel> GetAllCourses()
+    public ActionResult<IEnumerable<CourseDetailsViewModel>> GetAllCourses()
     {
-        return _courseService.GetAllCourses()
-            .Select(m => new CourseDetailsViewModel
-            {
-                CourseID = m.CourseID,
-                CourseName = m.CourseName,
-                Hours = m.Hours,
-                Description = m.Description,
-                instructorInfo = new GetInstructorInfoViewModel
-                {
-                    InstructorID = m.instructorInfo.InstructorID,
-                    FirstName = m.instructorInfo.FirstName,
-                    LastName = m.instructorInfo.LastName
-                }
-            });
+        var courseDetailsdto = _courseService.GetAllCourses();
+        var courseDetailsVM = _mapper.Map<IEnumerable<CourseDetailsViewModel>>(courseDetailsdto);
+
+        return Ok(courseDetailsVM);
     }
 
     [HttpGet("{id}")]
@@ -66,19 +55,9 @@ public class CoursesController : ControllerBase
         if (dto == null)
             return BadRequest();
 
-        return Ok(new CourseDetailsViewModel
-        {
-            CourseID = dto.CourseID,
-            CourseName = dto.CourseName,
-            Description = dto.Description,
-            Hours = dto.Hours,
-            instructorInfo = new GetInstructorInfoViewModel
-            {
-                InstructorID = dto.instructorInfo.InstructorID,
-                FirstName = dto.instructorInfo.FirstName,
-                LastName = dto.instructorInfo.LastName
-            }
-        });
+        var courseVM = _mapper.Map<CourseDetailsViewModel>(dto);
+
+        return Ok(courseVM);
     }
 
     [HttpPut("{id}")]
@@ -100,15 +79,14 @@ public class CoursesController : ControllerBase
 
         return Ok(new CourseDetailsViewModel
         {
-            CourseID = dto.CourseID,
-            CourseName = dto.CourseName,
+            ID = dto.ID,
+            Name = dto.Name,
             Description = dto.Description,
             Hours = dto.Hours,
             instructorInfo = new GetInstructorInfoViewModel
             {
-                InstructorID = dto.instructorInfo.InstructorID,
-                FirstName = dto.instructorInfo.FirstName,
-                LastName = dto.instructorInfo.LastName
+                ID = dto.instructorInfo.ID,
+                FullName = dto.instructorInfo.FullName,
             }
         });
 
@@ -121,7 +99,7 @@ public class CoursesController : ControllerBase
 
     }
 
-    [HttpPut("{id}")]
+    [HttpDelete("{id}")]
     public async Task DeleteCourseSoftAsync(int id)
     {
         await _courseService.DeleteCourseSoftAsync(id);

@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.ExamParticipationDTOs;
+﻿using AutoMapper;
+using ExaminationSystem.DTOs.ExamParticipationDTOs;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.ChoiceViewModel;
 using ExaminationSystem.ViewModels.ExamParticipationViewModels;
@@ -12,55 +13,35 @@ namespace ExaminationSystem.Controllers;
 public class ExamParticipationsController : ControllerBase
 {
     ExamParticipationsService _participationsService;
-    public ExamParticipationsController()
+    IMapper _mapper;
+    public ExamParticipationsController(IMapper mapper)
     {
-        _participationsService = new ExamParticipationsService();
+        _participationsService = new ExamParticipationsService(mapper);
+        _mapper = mapper;
     }
 
     [HttpPost]
     public async Task<IActionResult> TakeExamAsync(TakeExamRequestViewModel vm) 
     {
-        var dto = await _participationsService.TakeExamAsync(new TakeExamRequestDTO 
-        {
-            ExamID = vm.ExamID,
-            StudentID = vm.StudentID
-        });
+        var takeExamRequestDto = _mapper.Map<TakeExamRequestDTO>(vm);
 
-        return Ok(new TakeExamResponseViewModel
-        {
-            ExamAttempitID = dto.ExamAttempitID,
-            Questions = dto.Questions.Select(m => new ExamQuestionsViewModel
-            {
-                QuestionID = m.QuestionID,
-                QuestionText = m.QuestionText,
-                Choices = m.Choices.Select(m => new QuestionChoicesViewModel 
-                {
-                    ChoiceID = m.ChoiceID,
-                    ChoiceText = m.ChoiceText
-                }).ToList()
-            }).ToList()
-        });
+        var takeExamResponseDto = await _participationsService.TakeExamAsync(takeExamRequestDto);
+
+        var takeExamResponseVM = _mapper.Map<TakeExamResponseViewModel>(takeExamResponseDto);
+
+        return Ok(takeExamResponseVM);
     }
 
     [HttpPost]
     public async Task<IActionResult> SubmitExamAsync(SubmitExamRequestViewModel vm)
     {
-        var dto = await _participationsService.SubmitExamAsync(new SubmitExamRequestDTO
-        {
-            ExamAttempitID = vm.ExamAttempitID,
-            Answers = vm.Answers.Select(m => new SubmitExamAnswerDTO
-            {
-                ChoiceID = m.ChoiceID,
-                QuestionID = m.QuestionID
-            }).ToList()
-        });
+        var submitExamResquestDto = _mapper.Map<SubmitExamRequestDTO>(vm);
 
-        return Ok(new SubmitExamResponseViewModel 
-        {
-            ExamAttemptID = dto.ExamAttemptID,
-            IsSubmitted = dto.IsSubmitted,
-            SubmittedAt = dto.SubmittedAt
-        });
+        var submitExamResponseDto = await _participationsService.SubmitExamAsync(submitExamResquestDto);
+
+        var submitExamResponseVM = _mapper.Map<SubmitExamResponseViewModel>(submitExamResponseDto);
+
+        return Ok(submitExamResponseVM);
     }
 
 }

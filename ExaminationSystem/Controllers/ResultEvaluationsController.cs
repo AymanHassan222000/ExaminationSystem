@@ -4,6 +4,6 @@ namespace ExaminationSystem.Controllers;
 
 [ApiController]
 [Route("[Controller]/[Action]")]
-public class InstructorsController : ControllerBase
+public class ResultEvaluationsController : ControllerBase
 {
 }

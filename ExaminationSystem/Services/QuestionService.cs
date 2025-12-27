@@ -1,4 +1,6 @@
-﻿using ExaminationSystem.DTOs.IntructorDTOs;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using ExaminationSystem.DTOs.IntructorDTOs;
 using ExaminationSystem.DTOs.QuestionDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
@@ -9,10 +11,12 @@ public class QuestionService
 {
     BaseRepository<Question> _questionRepo;
     BaseRepository<Instructor> _instructorRepo;
-    public QuestionService()
+    IMapper _mapper;
+    public QuestionService(IMapper mapper)
     {
         _questionRepo = new BaseRepository<Question>();
         _instructorRepo = new BaseRepository<Instructor>();
+        _mapper = mapper;
     }
 
     public async Task<QuestionDetailsDTO> AddQuestionAsync(CreateQuestionDTO dto)
@@ -22,65 +26,37 @@ public class QuestionService
         if (instructor == null)
             throw new Exception($"No instructor was found with ID = {dto.InstructorID}");
 
-        Question question = new Question
-        {
-            QuestionText = dto.QuestionText,
-            Level = dto.Level,
-            InstructorID = dto.InstructorID
-        };
+        var question = _mapper.Map<Question>(dto);
 
-        var result = await _questionRepo.AddAsync(question);
+        await _questionRepo.AddAsync(question);
 
-        return new QuestionDetailsDTO
-        {
-            QuestionID = result.ID,
-            QuestionText = result.QuestionText,
-            Level = result.Level,
-            instructorInfo = new GetInstructorInfoDTO 
-            {
-                InstructorID = result.InstructorID,
-                FirstName = instructor.FirstName,
-                LastName = instructor.LastName
-            }
-        };
+        question.Instructor = instructor;
+
+        var questionDetails = _mapper.Map<QuestionDetailsDTO>(question);
+
+        return questionDetails;
     }
+
     public IEnumerable<QuestionDetailsDTO> GetAllQuestions()
     {
-        return _questionRepo.GetAll().Select(e => new QuestionDetailsDTO
-        {
-            QuestionID = e.ID,
-            QuestionText = e.QuestionText,
-            Level = e.Level,
-            instructorInfo = new GetInstructorInfoDTO
-            {
-                InstructorID = e.Instructor.ID,
-                FirstName = e.Instructor.FirstName,
-                LastName = e.Instructor.LastName
-            }
-        }).OrderBy(e => e.Level).ToList();
+        var questionList = _questionRepo.GetAll()
+                                        .ProjectTo<QuestionDetailsDTO>(_mapper.ConfigurationProvider)
+                                        .OrderBy(e => e.Level)
+                                        .ToList();
+
+        return questionList;
     }
 
     public async Task<QuestionDetailsDTO> GetQuestionByIDAsync(int id)
     {
-        var question = await _questionRepo.GetByIdAsync(id);
+        var question = await _questionRepo.GetByIdAsync(id, m => m.Instructor);
 
         if (question == null)
             throw new Exception($"No question was found with ID = {id}");
 
-        var instructor = await _instructorRepo.GetByIdAsync(question.InstructorID);
+        var questionDetails = _mapper.Map<QuestionDetailsDTO>(question);
 
-        return new QuestionDetailsDTO
-        {
-            QuestionID = question.ID,
-            QuestionText = question.QuestionText,
-            Level = question.Level,
-            instructorInfo = new GetInstructorInfoDTO
-            {
-                InstructorID = instructor.ID,
-                FirstName = instructor.FirstName,
-                LastName = instructor.LastName
-            }
-        };
+        return questionDetails;
     }
 
     public async Task<QuestionDetailsDTO> UpdateQuestionAsync(int questionID, UpdateQuestionDTO dto)

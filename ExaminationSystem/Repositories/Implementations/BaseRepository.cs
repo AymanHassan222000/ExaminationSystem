@@ -35,9 +35,19 @@ public class BaseRepository<T> where T : BaseModel
         return query;
     }
 
-    public async Task<T?> GetByIdAsync(int id)
+    public async Task<T?> GetByIdAsync(int id,params Expression<Func<T,object>>[] includes)
     {
-        return await _dbSet.FirstOrDefaultAsync(e => e.ID == id && !e.IsDeleted);
+        IQueryable<T> query = _dbSet;
+
+        if (includes != null && includes.Any()) 
+        {
+            foreach (var include in includes) 
+            {
+                query = query.Include(include);
+            }
+        }
+
+        return await query.FirstOrDefaultAsync(e => e.ID == id && !e.IsDeleted);
     }
 
     public async Task<T?> FindAsync(Expression<Func<T, bool>> criteria) 

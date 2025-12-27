@@ -2,6 +2,6 @@
 
 public class GetCourseInfoDTO
 {
-    public int CourseID { get; set; }
+    public int ID { get; set; }
     public string Name { get; set; }
 }

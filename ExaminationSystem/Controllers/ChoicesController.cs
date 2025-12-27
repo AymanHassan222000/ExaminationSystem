@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.ChoiceDTOs;
+﻿using AutoMapper;
+using ExaminationSystem.DTOs.ChoiceDTOs;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.ChoiceViewModel;
 using Microsoft.AspNetCore.Mvc;
@@ -10,86 +11,62 @@ namespace ExaminationSystem.Controllers;
 public class ChoicesController : ControllerBase
 {
     ChoiceService _choiceService;
-    public ChoicesController()
+    IMapper _mapper;
+    public ChoicesController(IMapper mapper)
     {
-        _choiceService = new ChoiceService();
+        _choiceService = new ChoiceService(mapper);
+        _mapper = mapper;
     }
 
-    //Add Course
     [HttpPost]
-    public async Task<ActionResult> AddChoiceAsync(CreateChoiceViewModel vm)
+    public async Task<IActionResult> AddChoiceAsync(CreateChoiceViewModel vm)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var dto = new CreateChoiceDTO
-        {
-            ChoiceText = vm.ChoiceText,
-            IsCorrect = vm.IsCorrect,
-            QuestionID = vm.QuestionID
-        };
+        var createChoiceDto = _mapper.Map<CreateChoiceDTO>(vm);
 
-        var result = await _choiceService.AddChoiceAsync(dto);
+        var choiceDetailsDto = await _choiceService.AddChoiceAsync(createChoiceDto);
 
-        if (result == null) return BadRequest();
+        var choiceDetailsVM = _mapper.Map<ChoiceDetailseViewModel>(choiceDetailsDto);
 
-        return StatusCode(StatusCodes.Status201Created, result);
+        return StatusCode(StatusCodes.Status201Created, choiceDetailsVM);
     }
 
     [HttpGet]
-    public IEnumerable<ChoiceDetailseViewModel> GetAllQuestions()
+    public IActionResult GetAllQuestions()
     {
-        return _choiceService.GetAllChoices()
-            .Select(m => new ChoiceDetailseViewModel
-            {
-                ChoiceID = m.ChoiceID,
-                ChoiceText = m.ChoiceText,
-                IsCorrect = m.IsCorrect,
-                QuestionID = m.QuestionID
-            });
+        var choicesDto = _choiceService.GetAllChoices();
+
+        var choicesVM = _mapper.Map<IEnumerable<ChoiceDetailseViewModel>>(choicesDto);
+
+        return Ok(choicesVM);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult> GetChoiceByIDAsync(int id)
+    public async Task<IActionResult> GetChoiceByIDAsync(int id)
     {
 
-        var dto = await _choiceService.GetChoiceByIDAsync(id);
+        var choiceDetailsDto = await _choiceService.GetChoiceByIDAsync(id);
 
-        if (dto == null)
-            return BadRequest();
-
-        return Ok(new ChoiceDetailseViewModel
-        {
-            ChoiceID = dto.ChoiceID,
-            ChoiceText = dto.ChoiceText,
-            IsCorrect = dto.IsCorrect,
-            QuestionID = dto.QuestionID
-        });
+        var choiceDetailsVM = _mapper.Map<ChoiceDetailseViewModel>(choiceDetailsDto);
+        
+        return Ok(choiceDetailsVM);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ChoiceDetailseViewModel>> UpdateQuestionAsync(int id, UpdateChoiceViewModel vm)
+    public async Task<IActionResult> UpdateQuestionAsync(int id, UpdateChoiceViewModel vm)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var dto = await _choiceService.UpdateChoiceAsync(id, new UpdateChoiceDTO
-        {
-            ChoiceText = vm.ChoiceText,
-            IsCorrect = vm.IsCorrect,
-            QuestionID = vm.QuestionID
-        });
+        var updateChoiceDto = _mapper.Map<UpdateChoiceDTO>(vm);
 
-        if (dto == null)
-            return BadRequest();
+        var choiceDetailsDto = await _choiceService.UpdateChoiceAsync(id,updateChoiceDto);
 
-        return Ok(new ChoiceDetailseViewModel
-        {
-            ChoiceID = dto.ChoiceID,
-            ChoiceText = dto.ChoiceText,
-            IsCorrect = dto.IsCorrect,
-            QuestionID = dto.QuestionID
-        });
+        var choiceDetailsVM = _mapper.Map<ChoiceDetailseViewModel>(choiceDetailsDto);
+
+        return Ok(choiceDetailsVM);
     }
 
     [HttpDelete("{id}")]

@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.ChoiceDTOs;
+﻿using AutoMapper;
+using ExaminationSystem.DTOs.ChoiceDTOs;
 using ExaminationSystem.DTOs.ExamParticipationDTOs;
 using ExaminationSystem.DTOs.QuestionDTOs;
 using ExaminationSystem.Models;
@@ -13,13 +14,15 @@ public class ExamParticipationsService
     ExamAttemptRepository _attemptRepo;
     BaseRepository<ExamAttemptAnswer> _attemptAnswerRepo;
     BaseRepository<Choice> _choiceRepo;
-    public ExamParticipationsService()
+    IMapper _mapper;
+    public ExamParticipationsService(IMapper mapper)
     {
         _examRepo = new ExamRepository();
         _studentCourseRepo = new BaseRepository<StudentCourse>();
         _attemptRepo = new ExamAttemptRepository();
         _choiceRepo = new BaseRepository<Choice>();
         _attemptAnswerRepo = new BaseRepository<ExamAttemptAnswer>();
+        _mapper = mapper;
     }
 
     public async Task<TakeExamResponseDTO> TakeExamAsync(TakeExamRequestDTO dto)
@@ -39,32 +42,15 @@ public class ExamParticipationsService
         if (alreadyTaken)
             throw new Exception("Can't take the same exam again");
 
-        var examAttempt = new ExamAttempt
-        {
-            ExamID = dto.ExamID,
-            StudentID = dto.StudentID,
-            StartedAt = DateTime.UtcNow,
-            IsSubmitted = false
-        };
+        var examAttempt = _mapper.Map<ExamAttempt>(dto);
 
         await _attemptRepo.AddAsync(examAttempt);
 
-        var examQuestions = exam.ExamQuestions.Select(d => new ExamQuestionsDTO
-        {
-            QuestionID = d.QuestionID,
-            QuestionText = d.Question.QuestionText,
-            Choices = d.Question.Choices.Select(c => new QuestionChoicesDTO
-            {
-                ChoiceID = c.ID,
-                ChoiceText = c.ChoiceText
-            }).ToList()
-        }).ToList();
+        examAttempt.Exam = exam;
 
-        return new TakeExamResponseDTO
-        {
-            ExamAttempitID = examAttempt.ID,
-            Questions = examQuestions
-        };
+        var takeExamResponse = _mapper.Map<TakeExamResponseDTO>(examAttempt);
+
+        return takeExamResponse;
     }
 
     public async Task<SubmitExamResponseDTO> SubmitExamAsync(SubmitExamRequestDTO dto)
@@ -96,18 +82,21 @@ public class ExamParticipationsService
         attempt.IsSubmitted = true;
         attempt.SubmittedAt = DateTime.UtcNow;
 
-
         await _attemptRepo.UpdateAsync(
              m => m.ID == attempt.ID,
              s => s.SetProperty(d => d.IsSubmitted, attempt.IsSubmitted)
                    .SetProperty(d => d.SubmittedAt, attempt.SubmittedAt)
         );
 
-        return new SubmitExamResponseDTO
-        {
-            ExamAttemptID = attempt.ID,
-            IsSubmitted = attempt.IsSubmitted,
-            SubmittedAt = attempt.SubmittedAt.Value
-        };
+        var submitExamResponseDto = _mapper.Map<SubmitExamResponseDTO>(attempt);
+
+        return submitExamResponseDto;
+
+        //return new SubmitExamResponseDTO
+        //{
+        //    ExamAttemptID = attempt.ID,
+        //    IsSubmitted = attempt.IsSubmitted,
+        //    SubmittedAt = attempt.SubmittedAt.Value
+        //};
     }
 }

@@ -1,4 +1,6 @@
-﻿using ExaminationSystem.DTOs.ChoiceDTOs;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using ExaminationSystem.DTOs.ChoiceDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
 
@@ -8,10 +10,13 @@ public class ChoiceService
 {
     BaseRepository<Choice> _choiceRepo;
     BaseRepository<Question> _questionRepo;
-    public ChoiceService()
+    IMapper _mapper;
+
+    public ChoiceService(IMapper mapper)
     {
         _choiceRepo = new BaseRepository<Choice>();
         _questionRepo = new BaseRepository<Question>();
+        _mapper = mapper;
     }
 
     public async Task<ChoiceDetailsDTO> AddChoiceAsync(CreateChoiceDTO dto)
@@ -21,7 +26,7 @@ public class ChoiceService
         if (question == null)
             throw new Exception($"No question was found with ID = {dto.QuestionID}");
 
-        //TODO:Make sure there is no more than one correct answer for the same question.
+        //Make sure there is no more than one correct answer for the same question.
         if (dto.IsCorrect) 
         {
             var alreadyHasCorrect = await _choiceRepo.AnyAsync(c => c.QuestionID == dto.QuestionID && c.IsCorrect);
@@ -30,33 +35,20 @@ public class ChoiceService
                 throw new Exception("This question already has a correct answer.");
         }
 
-        Choice choice = new Choice
-        {
-            ChoiceText = dto.ChoiceText,
-            IsCorrect = dto.IsCorrect,
-            QuestionID = dto.QuestionID
-        };
+        var choice = _mapper.Map<Choice>(dto);
 
-        var result = await _choiceRepo.AddAsync(choice);
+        await _choiceRepo.AddAsync(choice);
 
-        return new ChoiceDetailsDTO
-        {
-            ChoiceID = result.ID,
-            ChoiceText = result.ChoiceText,
-            IsCorrect = result.IsDeleted,
-            QuestionID = result.QuestionID
-        };
+        var choiceDetailsDto = _mapper.Map<ChoiceDetailsDTO>(choice);
+
+        return choiceDetailsDto;
     }
+
     public IEnumerable<ChoiceDetailsDTO> GetAllChoices()
     {
-        return _choiceRepo.GetAll().Select(e => new ChoiceDetailsDTO
-        {
-            ChoiceID = e.ID,
-            ChoiceText = e.ChoiceText,
-            IsCorrect = e.IsCorrect,
-            QuestionID = e.QuestionID
-
-        }).ToList();
+        var choicesDto = _choiceRepo.GetAll().ProjectTo<ChoiceDetailsDTO>(_mapper.ConfigurationProvider).ToList();
+        
+        return choicesDto;
     }
 
     public async Task<ChoiceDetailsDTO> GetChoiceByIDAsync(int id)
@@ -66,13 +58,9 @@ public class ChoiceService
         if (choice == null)
             throw new Exception($"No choice was found with ID = {id}");
 
-        return new ChoiceDetailsDTO
-        {
-            ChoiceID = choice.ID,
-            ChoiceText = choice.ChoiceText,
-            QuestionID = choice.QuestionID,
-            IsCorrect = choice.IsCorrect
-        };
+        var choiceDetailsDto = _mapper.Map<ChoiceDetailsDTO>(choice);
+
+        return choiceDetailsDto;
     }
 
     public async Task<ChoiceDetailsDTO> UpdateChoiceAsync(int choiceID, UpdateChoiceDTO dto)
