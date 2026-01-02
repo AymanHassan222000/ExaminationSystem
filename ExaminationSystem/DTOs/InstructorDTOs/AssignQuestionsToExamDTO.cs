@@ -1,4 +1,4 @@
-﻿namespace ExaminationSystem.DTOs.ExamDTOs;
+﻿namespace ExaminationSystem.DTOs.InstructorDTOs;
 
 public class AssignQuestionsToExamDTO
 {

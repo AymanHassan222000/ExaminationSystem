@@ -48,4 +48,6 @@ public class Context : DbContext
     public DbSet<Choice> Choices { get; set; }
     public DbSet<ExamAttempt> ExamAttempts { get; set; }
     public DbSet<ExamAttemptAnswer> ExamAttemptAnswers { get; set; }
+
+    public DbSet<ExamResult> ExamResults { get; set; }
 }

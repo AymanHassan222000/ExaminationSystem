@@ -3,12 +3,13 @@ using ExaminationSystem.DTOs.ExamDTOs;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.ExamViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace ExaminationSystem.Controllers;
 
 [ApiController]
 [Route("[Controller]/[Action]")]
-public class ExamsController: ControllerBase
+public class ExamsController : ControllerBase
 {
     ExamService _examService;
     IMapper _mapper;
@@ -19,67 +20,60 @@ public class ExamsController: ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddExamAsync(CreateExamViewModel vm)
+    public async Task<IActionResult> AddExamAsync(CreateExamViewModel vm, int instructorID)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var createExamDto = _mapper.Map<CreateExamDTO>(vm);
 
-        var examDetailsDto = await _examService.AddExamAsync(createExamDto);
+        var examDetailsDto = await _examService.AddExamAsync(createExamDto, instructorID);
 
-        var examDetailsVM = _mapper.Map<ExamDetailsViewModel>(vm);
+        var examDetailsVM = _mapper.Map<ExamDetailsViewModel>(examDetailsDto);
 
         return StatusCode(StatusCodes.Status201Created, examDetailsVM);
     }
 
     [HttpGet]
-    public IActionResult GetAllExams()
+    public async Task<IActionResult> GetAllExamsAsync(int instructorID)
     {
-        var examsDto = _examService.GetAllExams();
+        var examsDto = await _examService.GetAllExamsAsync(instructorID);
 
         var examsVM = _mapper.Map<IEnumerable<ExamDetailsViewModel>>(examsDto);
 
         return Ok(examsVM);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetExamByIDAsync(int id)
+    [HttpGet("{examID}")]
+    public async Task<IActionResult> GetExamByIDAsync(int examID, int instructorID)
     {
 
-        var examDetailsDto = await _examService.GetExamByIDAsync(id);
+        var examDetailsDto = await _examService.GetExamByIDAsync(examID, instructorID);
 
         var examDetailsVM = _mapper.Map<ExamDetailsViewModel>(examDetailsDto);
 
         return Ok(examDetailsVM);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateExamAsync(int id, UpdateExamViewModel vm)
+    [HttpPut("{examID}")]
+    public async Task<IActionResult> UpdateExamAsync(int examID, int instructorID, UpdateExamViewModel vm)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var updateExamDto = _mapper.Map<UpdateExamDTO>(vm); 
+        var updateExamDto = _mapper.Map<UpdateExamDTO>(vm);
 
-        var examDetailsDto = await _examService.UpdateExamAsync(id, updateExamDto);
+        var examDetailsDto = await _examService.UpdateExamAsync(examID, instructorID, updateExamDto);
 
         var examDetailsVM = _mapper.Map<ExamDetailsViewModel>(examDetailsDto);
 
         return Ok(examDetailsVM);
     }
 
-    [HttpDelete("{id}")]
-    public async Task DeleteExamHardAsync(int id)
+    [HttpDelete("{examID}")]
+    public async Task DeleteExamHardAsync(int examID, int instructorID)
     {
-        await _examService.DeleteExamAsync(id);
+        await _examService.DeleteExamAsync(examID, instructorID);
     }
 
-    [HttpPost]
-    public async Task AssignQuestionsToExamAsync(AssignQuestionsToExamViewModel vm) 
-    {
-        var assignDto = _mapper.Map<AssignQuestionsToExamDTO>(vm);
-
-        await _examService.AssignQuestionsToExamManuallyAsync(assignDto);
-    }
 }

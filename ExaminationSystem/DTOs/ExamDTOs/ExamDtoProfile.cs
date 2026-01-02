@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using ExaminationSystem.DTOs.CourseDTOs;
 using ExaminationSystem.Models;
 
 namespace ExaminationSystem.DTOs.ExamDTOs;

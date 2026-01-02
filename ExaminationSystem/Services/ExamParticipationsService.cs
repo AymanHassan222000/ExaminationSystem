@@ -1,25 +1,24 @@
 ﻿using AutoMapper;
-using ExaminationSystem.DTOs.ChoiceDTOs;
 using ExaminationSystem.DTOs.ExamParticipationDTOs;
-using ExaminationSystem.DTOs.QuestionDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminationSystem.Services;
 
 public class ExamParticipationsService
 {
-    ExamRepository _examRepo;
+    BaseRepository<Exam> _examRepo;
     BaseRepository<StudentCourse> _studentCourseRepo;
-    ExamAttemptRepository _attemptRepo;
+    BaseRepository<ExamAttempt> _attemptRepo;
     BaseRepository<ExamAttemptAnswer> _attemptAnswerRepo;
     BaseRepository<Choice> _choiceRepo;
     IMapper _mapper;
     public ExamParticipationsService(IMapper mapper)
     {
-        _examRepo = new ExamRepository();
+        _examRepo = new BaseRepository<Exam>();
         _studentCourseRepo = new BaseRepository<StudentCourse>();
-        _attemptRepo = new ExamAttemptRepository();
+        _attemptRepo = new BaseRepository<ExamAttempt>();
         _choiceRepo = new BaseRepository<Choice>();
         _attemptAnswerRepo = new BaseRepository<ExamAttemptAnswer>();
         _mapper = mapper;
@@ -27,7 +26,10 @@ public class ExamParticipationsService
 
     public async Task<TakeExamResponseDTO> TakeExamAsync(TakeExamRequestDTO dto)
     {
-        var exam = await _examRepo.GetExamWithQuestionsAndChoicesAsync(dto.ExamID);
+        var exam = await _examRepo.FindAsync(m => m.ID == dto.ExamID, includes: m =>
+        m.Include(m => m.ExamQuestions)
+        .ThenInclude(m => m.Question)
+        .ThenInclude(m => m.Choices));
 
         if (exam == null)
             throw new Exception("Exam not found");
@@ -55,7 +57,7 @@ public class ExamParticipationsService
 
     public async Task<SubmitExamResponseDTO> SubmitExamAsync(SubmitExamRequestDTO dto)
     {
-        var attempt = await _attemptRepo.GetAttemptWithExamAsync(dto.ExamAttempitID);
+        var attempt = await _attemptRepo.GetByIdAsync(dto.ExamAttempitID, m => m.Exam);
 
         if (attempt == null)
             throw new Exception($"Not Found Exam Attempt With ID {dto.ExamAttempitID}");

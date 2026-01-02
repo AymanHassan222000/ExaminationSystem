@@ -10,56 +10,68 @@ namespace ExaminationSystem.Services;
 public class ExamService
 {
     BaseRepository<Exam> _examRepo;
-    BaseRepository<Course> _courseRepo;
     BaseRepository<ExamQuestion> _examQuestionRepo;
+    BaseRepository<Question> _questionRepo;
     IMapper _mapper;
     public ExamService(IMapper mapper)
     {
         _examRepo = new BaseRepository<Exam>();
-        _courseRepo = new BaseRepository<Course>();
         _examQuestionRepo = new BaseRepository<ExamQuestion>();
+        _questionRepo = new BaseRepository<Question>();
         _mapper = mapper;
     }
 
-    public async Task<ExamDetailsDTO> AddExamAsync(CreateExamDTO dto)
+    public async Task<ExamDetailsDTO> AddExamAsync(CreateExamDTO dto, int instructorID)
     {
-        var course = await _courseRepo.GetByIdAsync(dto.CourseID);
-
-        if (course == null)
-            throw new Exception($"No course was found with ID = {dto.CourseID}");
-
         var exam = _mapper.Map<Exam>(dto);
+        exam.CreatedBy = instructorID;
 
         await _examRepo.AddAsync(exam);
-
-        exam.Course = course;
 
         var examDetails = _mapper.Map<ExamDetailsDTO>(exam);
 
         return examDetails;
     }
 
-    public IEnumerable<ExamDetailsDTO> GetAllExams()
+    public async Task<IEnumerable<ExamDetailsDTO>> GetAllExamsAsync(int instructorID)
     {
-        var examList = _examRepo.GetAll().ProjectTo<ExamDetailsDTO>(_mapper.ConfigurationProvider).ToList();
+        var exams = await _examRepo.GetAll().Where(m => m.CreatedBy == instructorID)
+            .ProjectTo<ExamDetailsDTO>(_mapper.ConfigurationProvider).ToListAsync();
 
-        return examList;
+        if (!exams.Any())
+            throw new Exception("Not found any exams");
+
+        return exams;
     }
 
-    public async Task<ExamDetailsDTO> GetExamByIDAsync(int id)
+    public async Task<ExamDetailsDTO> GetExamByIDAsync(int id, int instructorID)
     {
         var exam = await _examRepo.GetByIdAsync(id,m => m.Course);
 
         if (exam == null)
             throw new Exception($"No exam was found with ID = {id}");
 
+        if (exam.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not view this exam");
+
         var examDetails = _mapper.Map<ExamDetailsDTO>(exam);
 
         return examDetails;
     }
 
-    public async Task<ExamDetailsDTO> UpdateExamAsync(int examID, UpdateExamDTO dto)
+    public async Task<ExamDetailsDTO> UpdateExamAsync(int examID,int instructorID, UpdateExamDTO dto)
     {
+        var exam = await _examRepo.GetByIdAsync(examID);
+
+        if (exam == null)
+            throw new Exception($"Not found exam with ID {examID}");
+
+        if (exam.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not modfiy this exam");
+
+        if (exam.CourseID != null)
+            throw new Exception("You cannot modify this exam because it already assigned to course.");
+
         var result = await _examRepo.UpdateAsync(
         c => c.ID == examID,
         s => s
@@ -69,50 +81,32 @@ public class ExamService
               .SetProperty(d => d.DurationInMinutes, dto.DurationInMinutes)
               .SetProperty(d => d.NumberOfQuestions, dto.NumberOfQuestions)
               .SetProperty(d => d.UpdatedAt, DateTime.UtcNow)
+              .SetProperty(d => d.UpdatedBy, instructorID)
         );
 
         if (result == 0)
             throw new Exception("Update failed");
 
-        return await GetExamByIDAsync(examID);
+        var newExam = await _examRepo.GetByIdAsync(examID);
+
+        var examDetailsDto = _mapper.Map<ExamDetailsDTO>(newExam); 
+
+        return examDetailsDto;
     }
 
-    public async Task DeleteExamAsync(int id)
+    public async Task DeleteExamAsync(int id,int instructorID)
     {
         var exam = await _examRepo.GetByIdAsync(id);
 
         if (exam == null)
             throw new Exception($"No exam was found with ID = {id}");
 
+        if (exam.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not delete this exam");
+
         await _examRepo.DeleteAsync(exam);
     }
 
-    //Assign Questions to Exam Manully
-    public async Task AssignQuestionsToExamManuallyAsync(AssignQuestionsToExamDTO dto)
-    {
-        var exam = await _examRepo.GetByIdAsync(dto.ExamID);
-
-        if (exam == null)
-            throw new Exception($"No exam was found with ID = {dto.ExamID}");
-
-        var NumberOfQuestionsAdded = await _examQuestionRepo.GetAll(m => m.ExamID == dto.ExamID).CountAsync();
-
-        if (dto.QuestionIDs.Count() > exam.NumberOfQuestions || 
-            dto.QuestionIDs.Count > (exam.NumberOfQuestions - NumberOfQuestionsAdded))
-            throw new Exception("Can't Add All This Questions");
-
-        foreach (var questionID in dto.QuestionIDs)
-        {
-            bool IsAlreadyAssigned = await _examQuestionRepo.AnyAsync(eq => eq.QuestionID == questionID);
-
-            if (IsAlreadyAssigned)
-                continue;
-
-            await _examQuestionRepo.AddAsync(new ExamQuestion { QuestionID = questionID ,ExamID = dto.ExamID});
-        }
-    }
-
-    //TODO:Assign Questions to Exam Auto
 
 
 }

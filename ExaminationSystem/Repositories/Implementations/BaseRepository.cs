@@ -23,25 +23,20 @@ public class BaseRepository<T> where T : BaseModel
         return entity;
     }
 
-    public IQueryable<T> GetAll(Expression<Func<T,bool>>? criteria = null)
+    public IQueryable<T> GetAll()
     {
         var query = _dbSet.Where(e => !e.IsDeleted);
-
-        if (criteria != null) 
-        {
-            query = query.Where(criteria);
-        }
 
         return query;
     }
 
-    public async Task<T?> GetByIdAsync(int id,params Expression<Func<T,object>>[] includes)
+    public async Task<T?> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
     {
         IQueryable<T> query = _dbSet;
 
-        if (includes != null && includes.Any()) 
+        if (includes != null && includes.Any())
         {
-            foreach (var include in includes) 
+            foreach (var include in includes)
             {
                 query = query.Include(include);
             }
@@ -50,40 +45,43 @@ public class BaseRepository<T> where T : BaseModel
         return await query.FirstOrDefaultAsync(e => e.ID == id && !e.IsDeleted);
     }
 
-    public async Task<T?> FindAsync(Expression<Func<T, bool>> criteria) 
+    public IQueryable<T> QueryById(int id)
     {
-        return await _dbSet.FirstOrDefaultAsync(criteria);
+        var query = _dbSet.Where(m => m.ID == id);
+
+        return query;
     }
 
-    //public async Task<>
+    public async Task<T?> FindAsync(Expression<Func<T, bool>> criteria,
+        params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet;
 
-    #region Get All
-    //public IEnumerable<T> Get(
-    //    Expression<Func<T, bool>>? filterExpression = null,
-    //    bool OrderDescending = false,
-    //    Expression<Func<T, object>>? orderBy = null
-    //)
-    //{
-    //    IQueryable<T> query = GetAll();
-    //    if (filterExpression != null)
-    //    {
-    //        query = query.Where(filterExpression);
-    //    }
+        if (includes != null && includes.Any())
+        {
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+        }
 
-    //    if (orderBy != null)
-    //    {
-    //        query = query.OrderBy(orderBy);
-    //    }
+        return await query.FirstOrDefaultAsync(criteria);
+    }
 
-    //    if (OrderDescending)
-    //    {
-    //        query = query.OrderDescending();
-    //    }
+    public async Task<T?> FindAsync(
+        Expression<Func<T, bool>> criteria,
+        Func<IQueryable<T>,IQueryable<T>>? includes = null) 
+    {
+        IQueryable<T> query = _dbSet;
 
-    //    return query.ToList();
-    //}
+        if (includes != null)
+            query = includes(query);
 
-    #endregion
+        var result = await query.FirstOrDefaultAsync(criteria);
+
+        return result;
+    }
+
 
     public async Task<int> UpdateAsync(
         Expression<Func<T, bool>> predicate,
@@ -100,23 +98,20 @@ public class BaseRepository<T> where T : BaseModel
         await _context.SaveChangesAsync();
     }
 
-    public async Task<int> SoftDeleteAsync(int id)
+    public async Task<int> SoftDeleteAsync(int id, int instructorID)
     {
         return await _dbSet
                     .Where(e => e.ID == id)
-                    .ExecuteUpdateAsync(s =>s
-                         .SetProperty(x => x.IsDeleted, true)
-                         .SetProperty(x => x.UpdatedAt, DateTime.UtcNow)
+                    .ExecuteUpdateAsync(s => s
+                         .SetProperty(d => d.IsDeleted, true)
+                         .SetProperty(d => d.UpdatedAt, DateTime.UtcNow)
+                         .SetProperty(d => d.UpdatedBy, instructorID)
                     );
     }
 
-    public async Task<bool> AnyAsync(Expression<Func<T,bool>> criteria) 
+    public async Task<bool> AnyAsync(Expression<Func<T, bool>> criteria)
     {
         return await _dbSet.AnyAsync(criteria);
     }
 
-    public async Task SaveChangesAsync() 
-    {
-        await _context.SaveChangesAsync();
-    }
 }

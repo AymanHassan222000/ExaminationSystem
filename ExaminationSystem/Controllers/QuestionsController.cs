@@ -3,6 +3,7 @@ using ExaminationSystem.DTOs.QuestionDTOs;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.QuestionViewModel;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace ExaminationSystem.Controllers;
 
@@ -34,45 +35,45 @@ public class QuestionsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAllQuestions()
+    public async Task<IActionResult> GetAllQuestions(int instructorID)
     {
-        var qustionsDto = _questionService.GetAllQuestions();
+        var qustionsDto = await _questionService.GetAllQuestionsAsync(instructorID);
 
         var questionsVM = _mapper.Map<IEnumerable<QuestionDetailsDTO>>(qustionsDto);
 
         return Ok(questionsVM);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetQuestionByIDAsync(int id)
+    [HttpGet("{questionID}")]
+    public async Task<IActionResult> GetQuestionByIDAsync(int questionID,int instructorID)
     {
 
-        var questionDetailsDto = await _questionService.GetQuestionByIDAsync(id);
+        var questionDetailsDto = await _questionService.GetQuestionByIDAsync(questionID,instructorID);
 
         var questionDetailsVM = _mapper.Map<QuestionDetailsViewModel>(questionDetailsDto);
 
         return Ok(questionDetailsVM);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateQuestionAsync(int id, UpdateQuestionViewModel vm)
+    [HttpPut("{questionID}")]
+    public async Task<IActionResult> UpdateQuestionAsync(int questionID,int instructorID, UpdateQuestionViewModel vm)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var updateQuestionDto = _mapper.Map<UpdateQuestionDTO>(vm);
 
-        var questionDetailsDto = await _questionService.UpdateQuestionAsync(id,updateQuestionDto);
+        var questionDetailsDto = await _questionService.UpdateQuestionAsync(questionID,instructorID,updateQuestionDto);
 
         var questionDetailsVM = _mapper.Map<QuestionDetailsViewModel>(questionDetailsDto);
 
         return Ok(questionDetailsVM);
     }
 
-    [HttpDelete("{id}")]
-    public async Task DeleteQuestionHardAsync(int id)
+    [HttpDelete("{questionID}")]
+    public async Task DeleteQuestionHardAsync(int questionID, int instructorID)
     {
-        await _questionService.DeleteQuestionAsync(id);
+        await _questionService.DeleteQuestionAsync(questionID, instructorID);
     }
 
 }

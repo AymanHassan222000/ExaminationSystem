@@ -4,6 +4,7 @@ using ExaminationSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExaminationSystem.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20251231110916_ModifyExamsTable-MakeCourseIDNullable")]
+    partial class ModifyExamsTableMakeCourseIDNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,7 +64,7 @@ namespace ExaminationSystem.Migrations
                         .IsUnique()
                         .HasFilter("[IsCorrect] = 1");
 
-                    b.ToTable("Choices", (string)null);
+                    b.ToTable("Choices");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.Course", b =>
@@ -106,7 +109,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasIndex("InstructorID");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.Exam", b =>
@@ -156,7 +159,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasIndex("CourseID");
 
-                    b.ToTable("Exams", (string)null);
+                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.ExamAttempt", b =>
@@ -204,7 +207,7 @@ namespace ExaminationSystem.Migrations
                     b.HasIndex("StudentID", "ExamID")
                         .IsUnique();
 
-                    b.ToTable("ExamAttempts", (string)null);
+                    b.ToTable("ExamAttempts");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.ExamAttemptAnswer", b =>
@@ -250,7 +253,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasIndex("QuestionID");
 
-                    b.ToTable("ExamAttemptAnswers", (string)null);
+                    b.ToTable("ExamAttemptAnswers");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.ExamQuestion", b =>
@@ -289,7 +292,7 @@ namespace ExaminationSystem.Migrations
                     b.HasIndex("ExamID", "QuestionID")
                         .IsUnique();
 
-                    b.ToTable("ExamQuestions", (string)null);
+                    b.ToTable("ExamQuestions");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.ExamResult", b =>
@@ -335,7 +338,7 @@ namespace ExaminationSystem.Migrations
                     b.HasIndex("ExamAttemptID")
                         .IsUnique();
 
-                    b.ToTable("ExamResults", (string)null);
+                    b.ToTable("ExamResults");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.Instructor", b =>
@@ -386,7 +389,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("Instructors", (string)null);
+                    b.ToTable("Instructors");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.Question", b =>
@@ -426,7 +429,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasIndex("InstructorID");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.Student", b =>
@@ -477,7 +480,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("Students", (string)null);
+                    b.ToTable("Students");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.StudentCourse", b =>
@@ -515,7 +518,7 @@ namespace ExaminationSystem.Migrations
 
                     b.HasIndex("StudetnID");
 
-                    b.ToTable("StudentCourses", (string)null);
+                    b.ToTable("StudentCourses");
                 });
 
             modelBuilder.Entity("ExaminationSystem.Models.Choice", b =>

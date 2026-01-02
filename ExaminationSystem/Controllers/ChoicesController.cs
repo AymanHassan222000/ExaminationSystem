@@ -19,14 +19,14 @@ public class ChoicesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddChoiceAsync(CreateChoiceViewModel vm)
+    public async Task<IActionResult> AddChoiceAsync(CreateChoiceViewModel vm, int instructorID)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var createChoiceDto = _mapper.Map<CreateChoiceDTO>(vm);
 
-        var choiceDetailsDto = await _choiceService.AddChoiceAsync(createChoiceDto);
+        var choiceDetailsDto = await _choiceService.AddChoiceAsync(createChoiceDto, instructorID);
 
         var choiceDetailsVM = _mapper.Map<ChoiceDetailseViewModel>(choiceDetailsDto);
 
@@ -34,45 +34,46 @@ public class ChoicesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAllQuestions()
+    public async Task<IActionResult> GetAllChoicesAsync(int instructorID)
     {
-        var choicesDto = _choiceService.GetAllChoices();
+        var choicesDto = await _choiceService.GetAllChoicesAsync(instructorID);
 
         var choicesVM = _mapper.Map<IEnumerable<ChoiceDetailseViewModel>>(choicesDto);
 
         return Ok(choicesVM);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetChoiceByIDAsync(int id)
+    [HttpGet("{choiceID}")]
+    public async Task<IActionResult> GetChoiceByIDAsync(int choiceID, int instructorID)
     {
-
-        var choiceDetailsDto = await _choiceService.GetChoiceByIDAsync(id);
+        var choiceDetailsDto = await _choiceService.GetChoiceByIDAsync(choiceID, instructorID);
 
         var choiceDetailsVM = _mapper.Map<ChoiceDetailseViewModel>(choiceDetailsDto);
-        
+
         return Ok(choiceDetailsVM);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateQuestionAsync(int id, UpdateChoiceViewModel vm)
+    [HttpPut("{choiceID}")]
+    public async Task<IActionResult> UpdateChoiceAsync(int choiceID, int instructorID, UpdateChoiceViewModel vm)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var updateChoiceDto = _mapper.Map<UpdateChoiceDTO>(vm);
 
-        var choiceDetailsDto = await _choiceService.UpdateChoiceAsync(id,updateChoiceDto);
+        var choiceDetailsDto = await _choiceService.UpdateChoiceAsync(choiceID, instructorID, updateChoiceDto);
 
         var choiceDetailsVM = _mapper.Map<ChoiceDetailseViewModel>(choiceDetailsDto);
 
         return Ok(choiceDetailsVM);
     }
 
-    [HttpDelete("{id}")]
-    public async Task DeleteQuestionHardAsync(int id)
+    [HttpDelete("{choiceID}")]
+    public async Task<IActionResult> DeleteQuestionHardAsync(int choiceID, int instructorID)
     {
-        await _choiceService.DeleteChoiceAsync(id);
+        await _choiceService.DeleteChoiceAsync(choiceID, instructorID);
+
+        return Ok();
     }
 
 }

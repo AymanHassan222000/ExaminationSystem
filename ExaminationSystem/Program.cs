@@ -4,11 +4,15 @@ using ExaminationSystem.DTOs.ExamDTOs;
 using ExaminationSystem.DTOs.ExamParticipationDTOs;
 using ExaminationSystem.DTOs.IntructorDTOs;
 using ExaminationSystem.DTOs.QuestionDTOs;
+using ExaminationSystem.DTOs.ResultEvaluationDTOs;
+using ExaminationSystem.DTOs.StudentDTO;
 using ExaminationSystem.ViewModels.ChoiceViewModel;
 using ExaminationSystem.ViewModels.CourseViewModels;
 using ExaminationSystem.ViewModels.ExamParticipationViewModels;
 using ExaminationSystem.ViewModels.ExamViewModels;
 using ExaminationSystem.ViewModels.InstructorViewModels;
+using ExaminationSystem.ViewModels.ResultEvaluationViewModels;
+using ExaminationSystem.ViewModels.StudentViewModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +34,10 @@ builder.Services.AddAutoMapper(typeof(ChoiceDtoProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(ChoiceViewModelProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(ExamParticipationsDtoProfile).Assembly);
 builder.Services.AddAutoMapper(typeof(ExamParticipationsViewModelProfile).Assembly);
-
+builder.Services.AddAutoMapper(typeof(ResultEvaluationDtoProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(ResultEvaluationViewModelProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(StudentDtoProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(StudentViewModelProfile).Assembly);
 
 
 //builder.Services.AddAutoMapper(typeof(Program).Assembly);

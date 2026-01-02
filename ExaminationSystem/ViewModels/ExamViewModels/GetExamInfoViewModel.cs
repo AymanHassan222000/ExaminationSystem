@@ -1,8 +1,8 @@
 ﻿namespace ExaminationSystem.ViewModels.ExamViewModels;
 
-public class AssignQuestionsToExamViewModel
+public class GetExamInfoViewModel
 {
     public int ExamID { get; set; }
-    public List<int> QuestionIDs { get; set; } = new();
+    public string ExamTitle { get; set; } = null!;
 
 }

@@ -1,0 +1,131 @@
+﻿using ExaminationSystem.DTOs.InstructorDTOs;
+using ExaminationSystem.DTOs.IntructorDTOs;
+using ExaminationSystem.Models;
+using ExaminationSystem.Models.Enums;
+using ExaminationSystem.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
+
+namespace ExaminationSystem.Services;
+
+public class InstructorService
+{
+    BaseRepository<Course> _courseRepo;
+    BaseRepository<Exam> _examRepo;
+    BaseRepository<ExamQuestion> _examQuestionRepo;
+    BaseRepository<Question> _questionRepo;
+    public InstructorService()
+    {
+        _courseRepo = new BaseRepository<Course>();
+        _examRepo = new BaseRepository<Exam>();
+        _examQuestionRepo = new BaseRepository<ExamQuestion>();
+        _questionRepo = new BaseRepository<Question>();
+    }
+
+    //Assign Questions to Exam Manully
+    public async Task AssignQuestionsToExamManuallyAsync(AssignQuestionsToExamDTO dto, int instructorID)
+    {
+        var exam = await _examRepo.GetByIdAsync(dto.ExamID);
+
+        if (exam == null)
+            throw new Exception($"No exam was found with ID = {dto.ExamID}");
+
+        if (exam.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not add questions to this exam");
+
+        if (exam.CourseID != null)
+            throw new Exception("You can not assign questions to this exam, because it added to course already");
+
+        var NumberOfQuestionsAdded = await _examQuestionRepo.GetAll().Where(m => m.ExamID == dto.ExamID).CountAsync();
+
+        if (dto.QuestionIDs.Count() > exam.NumberOfQuestions ||
+            dto.QuestionIDs.Count > (exam.NumberOfQuestions - NumberOfQuestionsAdded))
+        {
+            throw new Exception("Can't Add All This Questions");
+        }
+
+        foreach (var questionID in dto.QuestionIDs)
+        {
+            var question = await _questionRepo.GetByIdAsync(questionID);
+
+            if (question == null)
+                throw new Exception($"Not found question with ID {questionID}");
+
+            if (question.CreatedBy != instructorID)
+                throw new UnauthorizedAccessException("You can not assign this question to exam");
+
+            bool IsAlreadyAssigned = await _examQuestionRepo.AnyAsync(eq => eq.QuestionID == questionID);
+
+            if (IsAlreadyAssigned)
+                continue;
+
+            await _examQuestionRepo.AddAsync(new ExamQuestion { QuestionID = questionID, ExamID = dto.ExamID });
+        }
+    }
+
+    //TODO:Assign Questions to Exam Auto
+
+
+    public async Task AssignExamToCourseAsync(AssignExamToCourseDTO dto, int instructorID)
+    {
+        var course = await _courseRepo.GetByIdAsync(dto.CourseID);
+
+        if (course == null)
+            throw new Exception($"Not found course with ID {dto.CourseID}");
+
+        if (course.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not assign this exam to this course");
+
+        var exam = await _examRepo.FindAsync(m => m.ID == dto.ExamID, includes:
+                                       m => m.Include(e => e.ExamQuestions)
+                                             .ThenInclude(q => q.Question)
+                                             .ThenInclude(c => c.Choices)
+        );
+
+        if (exam == null)
+            throw new Exception($"Not found exam with ID {dto.ExamID}");
+
+        if (exam.CreatedBy != instructorID)
+            throw new Exception("You can't add this exam");
+
+        if (exam.CourseID != null)
+            throw new Exception("This exam is already assigned to course before");
+
+        if (exam.Types == ExamTypes.Final)
+        {
+            var isIncludeFinalBefore = await _examRepo.AnyAsync(m => m.CourseID == dto.CourseID && m.Types == ExamTypes.Final);
+
+            if (isIncludeFinalBefore)
+                throw new Exception("Can't add more than final exam");
+        }
+
+        if (exam.ExamQuestions.Count != exam.NumberOfQuestions)
+            throw new Exception("Exam does not contain the requierd number of questions");
+
+        int numberOfChoices = 0;
+
+        foreach (var item in exam.ExamQuestions) 
+        {
+            var haveCorrectChoice = item.Question.Choices.Any(m => m.IsCorrect);
+            var choicesCount = item.Question.Choices.Count;
+
+            if (!haveCorrectChoice)
+                throw new Exception($"Question with ID {item.Question.ID} not have correct choice.");
+
+            if (choicesCount < 2)
+                throw new Exception($"Qustion with ID {item.QuestionID} must have more than 2 choices");
+
+            if (numberOfChoices == 0) 
+                numberOfChoices = choicesCount;
+
+            if (numberOfChoices != choicesCount)
+                throw new Exception("Questions not have the same number of choices");
+        }
+
+        await _examRepo.UpdateAsync(e => e.ID == dto.ExamID,
+                       c => c.SetProperty(d => d.CourseID, s => dto.CourseID)
+                             .SetProperty(d => d.UpdatedAt, DateTime.UtcNow)
+                             .SetProperty(d => d.UpdatedBy, instructorID)
+        );
+    }
+
+}

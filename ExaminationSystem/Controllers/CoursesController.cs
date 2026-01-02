@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using ExaminationSystem.DTOs.CourseDTOs;
+using ExaminationSystem.DTOs.IntructorDTOs;
+using ExaminationSystem.DTOs.StudentDTO;
 using ExaminationSystem.Services;
 using ExaminationSystem.ViewModels.CourseViewModels;
 using ExaminationSystem.ViewModels.InstructorViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace ExaminationSystem.Controllers;
 
@@ -19,16 +22,18 @@ public class CoursesController : ControllerBase
         _mapper = mapper;
     }
 
-    //Add Course
     [HttpPost]
-    public async Task<ActionResult> AddCourse(CreateCourseViewModel vm)
+    public async Task<IActionResult> AddCourseAsync(CreateCourseViewModel vm, int instructorID)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        if (instructorID != vm.InstructorID)
+            return BadRequest("You can not add course for another instructor.");
+
         var createCourseDto = _mapper.Map<CreateCourseDTO>(vm);
 
-        var courseDetailsDto = await _courseService.AddCourseAsync(createCourseDto);
+        var courseDetailsDto = await _courseService.AddCourseAsync(createCourseDto, instructorID);
 
         if (courseDetailsDto == null) return BadRequest();
 
@@ -38,81 +43,55 @@ public class CoursesController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CourseDetailsViewModel>> GetAllCourses()
+    public async Task<IActionResult> GetAllCoursesAsync(int instructorId)
     {
-        var courseDetailsdto = _courseService.GetAllCourses();
+        var courseDetailsdto = await _courseService.GetAllCoursesAsync(instructorId);
         var courseDetailsVM = _mapper.Map<IEnumerable<CourseDetailsViewModel>>(courseDetailsdto);
 
         return Ok(courseDetailsVM);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult> GetCourseByID(int id)
+    [HttpGet("{courseID}")]
+    public async Task<IActionResult> GetCourseByID(int courseID, int instructorId)
     {
 
-        var dto = await _courseService.GetCourseByIDAsync(id);
-
-        if (dto == null)
-            return BadRequest();
+        var dto = await _courseService.GetCourseByIDAsync(courseID, instructorId);
 
         var courseVM = _mapper.Map<CourseDetailsViewModel>(dto);
 
         return Ok(courseVM);
     }
 
-    [HttpPut("{id}")]
-    public async Task<ActionResult<CourseDetailsViewModel>> UpdateCourseAsync(int id, UpdateCourseViewModel vm)
+    [HttpPut("{courseID}")]
+    public async Task<IActionResult> UpdateCourseAsync(int courseID, int instructorID, UpdateCourseViewModel vm)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var dto = await _courseService.UpdateCourseAsync(id, new UpdateCourseDTO
-        {
-            Name = vm.Name,
-            Description = vm.Description,
-            Hours = vm.Hours,
-            InstructorID = vm.InstructorID
-        });
+        var updateCourseDto = _mapper.Map<UpdateCourseDTO>(vm);
 
-        if (dto == null)
-            return BadRequest();
+        var courseDetailsDto = await _courseService.UpdateCourseAsync(courseID, instructorID, updateCourseDto);
 
-        return Ok(new CourseDetailsViewModel
-        {
-            ID = dto.ID,
-            Name = dto.Name,
-            Description = dto.Description,
-            Hours = dto.Hours,
-            instructorInfo = new GetInstructorInfoViewModel
-            {
-                ID = dto.instructorInfo.ID,
-                FullName = dto.instructorInfo.FullName,
-            }
-        });
+        var courseDetailsVM = _mapper.Map<CourseDetailsViewModel>(courseDetailsDto);
 
+        return Ok(courseDetailsVM);
     }
 
-    [HttpDelete("{id}")]
-    public async Task DeleteCourseHardAsync(int id)
+    [HttpDelete("{courseID}")]
+    public async Task<IActionResult> DeleteCourseHardAsync(int courseID,int instructorID)
     {
-        await _courseService.DeleteCourse(id);
+        await _courseService.DeleteCourse(courseID,instructorID);
 
+        return Ok();
     }
 
-    [HttpDelete("{id}")]
-    public async Task DeleteCourseSoftAsync(int id)
+    [HttpDelete("{courseID}")]
+    public async Task<IActionResult> DeleteCourseSoftAsync(int courseID,int instructorID)
     {
-        await _courseService.DeleteCourseSoftAsync(id);
+        await _courseService.DeleteCourseSoftAsync(courseID, instructorID);
+
+        return Ok();
     }
 
-    [HttpPost]
-    public async Task EnrollInCourse(EnrollInCourseViewModel vm)
-    {
-        await _courseService.AssignStudentToCourse(new EnrollInCourseDTO
-        {
-            StudentID = vm.StudentID,
-            CourseID = vm.CourseID
-        });
-    }
 
 }

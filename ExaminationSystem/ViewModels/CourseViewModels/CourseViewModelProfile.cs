@@ -10,5 +10,9 @@ public class CourseViewModelProfile : Profile
         CreateMap<CourseDetailsDTO, CourseDetailsViewModel>();
 
         CreateMap<CreateCourseViewModel, CreateCourseDTO>();
+
+        CreateMap<UpdateCourseViewModel, UpdateCourseDTO>();
+
+
     }
 }

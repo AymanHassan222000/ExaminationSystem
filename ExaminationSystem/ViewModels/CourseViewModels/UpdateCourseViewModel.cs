@@ -14,7 +14,4 @@ public class UpdateCourseViewModel
     [Range(0,int.MaxValue)]
     public int Hours { get; set; }
 
-    [Range(0,int.MaxValue)]
-    public int InstructorID { get; set; }
-
 }

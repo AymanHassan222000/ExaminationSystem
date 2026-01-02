@@ -15,4 +15,8 @@ public class ExamAttempt : BaseModel
 
     [ForeignKey("StudentID")]
     public Student Student { get; set; }
+
+    public ICollection<ExamAttemptAnswer> Answers { get; set; } = new List<ExamAttemptAnswer>();
+
+    public ExamResult ExamResult { get; set; }
 }

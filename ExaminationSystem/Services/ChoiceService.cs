@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using ExaminationSystem.DTOs.ChoiceDTOs;
 using ExaminationSystem.Models;
 using ExaminationSystem.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExaminationSystem.Services;
 
@@ -19,12 +20,15 @@ public class ChoiceService
         _mapper = mapper;
     }
 
-    public async Task<ChoiceDetailsDTO> AddChoiceAsync(CreateChoiceDTO dto)
+    public async Task<ChoiceDetailsDTO> AddChoiceAsync(CreateChoiceDTO dto,int instructorID)
     {
         var question = await _questionRepo.GetByIdAsync(dto.QuestionID);
 
         if (question == null)
             throw new Exception($"No question was found with ID = {dto.QuestionID}");
+
+        if (question.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not add this choic to this question");
 
         //Make sure there is no more than one correct answer for the same question.
         if (dto.IsCorrect) 
@@ -36,6 +40,7 @@ public class ChoiceService
         }
 
         var choice = _mapper.Map<Choice>(dto);
+        choice.CreatedBy = instructorID;
 
         await _choiceRepo.AddAsync(choice);
 
@@ -44,31 +49,38 @@ public class ChoiceService
         return choiceDetailsDto;
     }
 
-    public IEnumerable<ChoiceDetailsDTO> GetAllChoices()
+    public async Task<IEnumerable<ChoiceDetailsDTO>> GetAllChoicesAsync(int instructorID)
     {
-        var choicesDto = _choiceRepo.GetAll().ProjectTo<ChoiceDetailsDTO>(_mapper.ConfigurationProvider).ToList();
+        var choicesDto = await _choiceRepo.GetAll().Where(m => m.CreatedBy == instructorID)
+                         .ProjectTo<ChoiceDetailsDTO>(_mapper.ConfigurationProvider).ToListAsync();
         
         return choicesDto;
     }
 
-    public async Task<ChoiceDetailsDTO> GetChoiceByIDAsync(int id)
+    public async Task<ChoiceDetailsDTO> GetChoiceByIDAsync(int id,int instructorID)
     {
         var choice = await _choiceRepo.GetByIdAsync(id);
 
         if (choice == null)
             throw new Exception($"No choice was found with ID = {id}");
 
+        if (choice.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not view this choice");
+
         var choiceDetailsDto = _mapper.Map<ChoiceDetailsDTO>(choice);
 
         return choiceDetailsDto;
     }
 
-    public async Task<ChoiceDetailsDTO> UpdateChoiceAsync(int choiceID, UpdateChoiceDTO dto)
+    public async Task<ChoiceDetailsDTO> UpdateChoiceAsync(int choiceID,int instructorID, UpdateChoiceDTO dto)
     {
         var choice = await _choiceRepo.GetByIdAsync(choiceID);
 
         if (choice == null)
             throw new Exception($"No choice was found with ID = {choiceID}");
+
+        if (choice.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not modify this choice");
 
         if (dto.IsCorrect)
         {
@@ -86,20 +98,24 @@ public class ChoiceService
               .SetProperty(d => d.IsCorrect, dto.IsCorrect)
               .SetProperty(d => d.QuestionID, dto.QuestionID)
               .SetProperty(d => d.UpdatedAt, DateTime.UtcNow)
+              .SetProperty(d => d.UpdatedBy, instructorID)
         );
 
         if (result == 0)
             throw new Exception("Update failed");
 
-        return await GetChoiceByIDAsync(choiceID);
+        return await GetChoiceByIDAsync(choiceID, instructorID);
     }
 
-    public async Task DeleteChoiceAsync(int id)
+    public async Task DeleteChoiceAsync(int id,int instructorID)
     {
         var choice = await _questionRepo.GetByIdAsync(id);
 
         if (choice == null)
             throw new Exception($"No choice was found with ID = {id}");
+
+        if (choice.CreatedBy != instructorID)
+            throw new UnauthorizedAccessException("You can not delete this choice");
 
         await _questionRepo.DeleteAsync(choice);
     }
