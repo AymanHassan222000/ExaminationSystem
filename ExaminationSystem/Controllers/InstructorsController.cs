@@ -21,11 +21,21 @@ public class InstructorsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task AssignQuestionsToExamAsync(AssignQuestionsToExamViewModel vm, int instructorID)
+    public async Task<IActionResult> AssignQuestionsToExamManuallyAsync(AssignQuestionsToExamViewModel vm, int instructorID)
     {
         var assignDto = _mapper.Map<AssignQuestionsToExamDTO>(vm);
 
         await _instructorService.AssignQuestionsToExamManuallyAsync(assignDto, instructorID);
+
+        return Ok();
+    }
+
+    [HttpPost("examID")]
+    public async Task<IActionResult> AssignQuestionsToExamAutoAsync(int examID, int instructorID) 
+    {
+        await _instructorService.AssignQuestinsToExamAutoAsync(examID, instructorID);
+
+        return Ok();
     }
 
 
