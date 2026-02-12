@@ -1,5 +1,4 @@
 ﻿using ExaminationSystem.DTOs.CourseDTOs;
-using ExaminationSystem.Models.Enums;
 
 namespace ExaminationSystem.ViewModels.ExamViewModels;
 

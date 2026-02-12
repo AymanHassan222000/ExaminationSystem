@@ -1,17 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace ExaminationSystem.ViewModels.CourseViewModels;
+﻿namespace ExaminationSystem.ViewModels.CourseViewModels;
 
 public class UpdateCourseViewModel
 {
-    [Required]
-    [MaxLength(150)]
-    public string Name { get; set; } = null!;
+    public int ID { get; set; }
+    public string? Name { get; set; } 
 
-    [Required]
-    public string Description { get; set; } = null!;
+    public string? Description { get; set; } 
 
-    [Range(0,int.MaxValue)]
-    public int Hours { get; set; }
+    public int? Hours { get; set; }
 
 }

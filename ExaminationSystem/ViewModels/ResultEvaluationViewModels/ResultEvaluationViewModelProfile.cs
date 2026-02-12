@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.ExamDTOs;
+﻿using ExaminationSystem.DTOs.ExamDTOs;
 using ExaminationSystem.DTOs.ResultEvaluationDTOs;
 using ExaminationSystem.ViewModels.ExamViewModels;
 

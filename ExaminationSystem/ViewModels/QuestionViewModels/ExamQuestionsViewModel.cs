@@ -1,5 +1,4 @@
-﻿using ExaminationSystem.DTOs.ChoiceDTOs;
-using ExaminationSystem.ViewModels.ChoiceViewModel;
+﻿using ExaminationSystem.ViewModels.ChoiceViewModel;
 
 namespace ExaminationSystem.ViewModels.QuestionViewModel;
 

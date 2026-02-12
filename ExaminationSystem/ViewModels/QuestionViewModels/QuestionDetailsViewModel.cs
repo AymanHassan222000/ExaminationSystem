@@ -1,6 +1,4 @@
-﻿using ExaminationSystem.DTOs.IntructorDTOs;
-using ExaminationSystem.Models.Enums;
-using ExaminationSystem.ViewModels.InstructorViewModels;
+﻿using ExaminationSystem.ViewModels.InstructorViewModels;
 
 namespace ExaminationSystem.ViewModels.QuestionViewModel;
 

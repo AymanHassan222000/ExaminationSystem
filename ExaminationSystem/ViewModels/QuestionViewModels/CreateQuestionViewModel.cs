@@ -1,6 +1,4 @@
-﻿using ExaminationSystem.Models.Enums;
-
-namespace ExaminationSystem.ViewModels.QuestionViewModel;
+﻿namespace ExaminationSystem.ViewModels.QuestionViewModel;
 
 public class CreateQuestionViewModel
 {

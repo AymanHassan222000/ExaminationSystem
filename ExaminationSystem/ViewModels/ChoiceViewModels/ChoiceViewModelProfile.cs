@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.ChoiceDTOs;
+﻿using ExaminationSystem.DTOs.ChoiceDTOs;
 
 namespace ExaminationSystem.ViewModels.ChoiceViewModel;
 

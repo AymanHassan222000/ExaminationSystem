@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ExaminationSystem.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace ExaminationSystem.Models
 {
@@ -23,5 +24,13 @@ namespace ExaminationSystem.Models
 
         [Required]
         public string PasswordHash { get; set; } = null!;
+
+        public bool IsActive { get; set; } = true;
+
+        public UserRoles Role { get; set; } = UserRoles.Student;
+
+        public Instructor Instructor { get; set; }
+        public Student Student { get; set; }
+
     }
 }

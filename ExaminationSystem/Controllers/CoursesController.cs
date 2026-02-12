@@ -1,97 +1,100 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.CourseDTOs;
-using ExaminationSystem.DTOs.IntructorDTOs;
-using ExaminationSystem.DTOs.StudentDTO;
-using ExaminationSystem.Services;
+﻿using ExaminationSystem.DTOs.CourseDTOs;
 using ExaminationSystem.ViewModels.CourseViewModels;
-using ExaminationSystem.ViewModels.InstructorViewModels;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace ExaminationSystem.Controllers;
 
 [ApiController]
-[Route("[Controller]/[Action]")]
+[Route("api/[Controller]/[Action]")]
 public class CoursesController : ControllerBase
 {
-    private CourseService _courseService;
+    private ICourseService _courseService;
     private IMapper _mapper;
-    public CoursesController(IMapper mapper)
+    public CoursesController(IMapper mapper,ICourseService courseService)
     {
-        _courseService = new CourseService(mapper);
+        _courseService = courseService;
         _mapper = mapper;
     }
 
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpPost]
-    public async Task<IActionResult> AddCourseAsync(CreateCourseViewModel vm, int instructorID)
+    public async Task<ResponseViewModel<CourseDetailsViewModel>> AddCourseAsync(CreateCourseViewModel vm)
     {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return new FailureResponseViewModel<CourseDetailsViewModel>(ErrorCode.InvalidModelState, ModelState.GetErrorMessages());
 
-        if (instructorID != vm.InstructorID)
-            return BadRequest("You can not add course for another instructor.");
+        var userID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         var createCourseDto = _mapper.Map<CreateCourseDTO>(vm);
 
-        var courseDetailsDto = await _courseService.AddCourseAsync(createCourseDto, instructorID);
+        var responseDto = await _courseService.AddCourseAsync(createCourseDto, userID);
 
-        if (courseDetailsDto == null) return BadRequest();
+        var responseVM = _mapper.Map<ResponseViewModel<CourseDetailsViewModel>>(responseDto);
 
-        var courseDetailsVM = _mapper.Map<CourseDetailsViewModel>(courseDetailsDto);
-
-        return StatusCode(StatusCodes.Status201Created, courseDetailsVM);
+        return responseVM;
     }
 
+    [Authorize]
     [HttpGet]
-    public async Task<IActionResult> GetAllCoursesAsync(int instructorId)
+    public async Task<ResponseViewModel<IEnumerable<CourseDetailsViewModel>>> GetAllCoursesAsync()
     {
-        var courseDetailsdto = await _courseService.GetAllCoursesAsync(instructorId);
-        var courseDetailsVM = _mapper.Map<IEnumerable<CourseDetailsViewModel>>(courseDetailsdto);
+        var userID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        return Ok(courseDetailsVM);
+        var userRole = Enum.Parse<UserRoles>(User.FindFirstValue(ClaimTypes.Role)) ;
+
+        var responseDto = await _courseService.GetAllCoursesAsync(new UserContextDTO(userID,userRole));
+
+        var responseVM = _mapper.Map<ResponseViewModel<IEnumerable<CourseDetailsViewModel>>>(responseDto);
+
+        return responseVM;
     }
 
+    [Authorize]
     [HttpGet("{courseID}")]
-    public async Task<IActionResult> GetCourseByID(int courseID, int instructorId)
+    public async Task<ResponseViewModel<CourseDetailsViewModel>> GetCourseByIDAsync(int courseID)
     {
+        var userID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        var dto = await _courseService.GetCourseByIDAsync(courseID, instructorId);
+        var userRole = Enum.Parse<UserRoles>(User.FindFirstValue(ClaimTypes.Role));
 
-        var courseVM = _mapper.Map<CourseDetailsViewModel>(dto);
+        var responseDto = await _courseService.GetCourseByIDAsync(courseID, new UserContextDTO(userID, userRole));
 
-        return Ok(courseVM);
+        var responseVM = _mapper.Map<ResponseViewModel<CourseDetailsViewModel>>(responseDto);
+
+        return responseVM;
     }
 
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpPut("{courseID}")]
-    public async Task<IActionResult> UpdateCourseAsync(int courseID, int instructorID, UpdateCourseViewModel vm)
+    public async Task<ResponseDTO<CourseDetailsDTO>> UpdateCourseAsync(int courseID,[FromBody] UpdateCourseDTO dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        if (courseID != dto.ID)
+            return new FailureResponseDTO<CourseDetailsDTO>(ErrorCode.InvalidCourseID,"Invalid Course ID");
 
-        var updateCourseDto = _mapper.Map<UpdateCourseDTO>(vm);
+        var userID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        var courseDetailsDto = await _courseService.UpdateCourseAsync(courseID, instructorID, updateCourseDto);
+        var userRole = Enum.Parse<UserRoles>(User.FindFirstValue(ClaimTypes.Role));
 
-        var courseDetailsVM = _mapper.Map<CourseDetailsViewModel>(courseDetailsDto);
+        var responseDto = await _courseService.UpdateCourseAsync(courseID, dto, new UserContextDTO(userID, userRole));
 
-        return Ok(courseDetailsVM);
+        return responseDto;
     }
 
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpDelete("{courseID}")]
-    public async Task<IActionResult> DeleteCourseHardAsync(int courseID,int instructorID)
+    public async Task<IActionResult> DeleteCourseHardAsync(int courseID, int instructorID)
     {
-        await _courseService.DeleteCourse(courseID,instructorID);
+        await _courseService.DeleteCourse(courseID, instructorID);
 
         return Ok();
     }
 
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpDelete("{courseID}")]
-    public async Task<IActionResult> DeleteCourseSoftAsync(int courseID,int instructorID)
+    public async Task<IActionResult> DeleteCourseSoftAsync(int courseID, int instructorID)
     {
         await _courseService.DeleteCourseSoftAsync(courseID, instructorID);
 
         return Ok();
     }
-
 
 }

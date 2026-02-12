@@ -1,6 +1,4 @@
-﻿using ExaminationSystem.Models.Enums;
-
-namespace ExaminationSystem.DTOs.QuestionDTOs;
+﻿namespace ExaminationSystem.DTOs.QuestionDTOs;
 
 public class CreateQuestionDTO
 {

@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.ExamDTOs;
-using ExaminationSystem.Models;
+﻿using ExaminationSystem.DTOs.ExamDTOs;
 
 namespace ExaminationSystem.DTOs.ResultEvaluationDTOs;
 

@@ -1,8 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.StudentDTO;
-using ExaminationSystem.Models;
-
-namespace ExaminationSystem.DTOs.CourseDTOs;
+﻿namespace ExaminationSystem.DTOs.CourseDTOs;
 
 public class CourseDtoProfile : Profile
 {
@@ -15,6 +11,9 @@ public class CourseDtoProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom( _=> DateTime.UtcNow));
 
         CreateMap<Course, GetCourseInfoDTO>();
+
+        CreateMap<UpdateCourseDTO, Course>()
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_=> DateTime.UtcNow));
 
     }
 }

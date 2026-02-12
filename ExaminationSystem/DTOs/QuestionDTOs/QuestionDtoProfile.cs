@@ -1,7 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.Models;
-
-namespace ExaminationSystem.DTOs.QuestionDTOs;
+﻿namespace ExaminationSystem.DTOs.QuestionDTOs;
 
 public class QuestionDtoProfile : Profile
 {

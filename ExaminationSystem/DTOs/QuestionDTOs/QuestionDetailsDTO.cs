@@ -1,5 +1,4 @@
 ﻿using ExaminationSystem.DTOs.IntructorDTOs;
-using ExaminationSystem.Models.Enums;
 
 namespace ExaminationSystem.DTOs.QuestionDTOs;
 

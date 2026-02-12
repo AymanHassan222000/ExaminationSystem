@@ -1,18 +1,16 @@
 ﻿using ExaminationSystem.Data;
-using ExaminationSystem.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
 
 namespace ExaminationSystem.Repositories.Implementations;
 
-public class BaseRepository<T> where T : BaseModel
+public class BaseRepository<T> : IBaseRepository<T> where T : BaseModel
 {
-    protected readonly Context _context;
+    protected readonly ApplicationDbContext _context;
     protected DbSet<T> _dbSet;
-    public BaseRepository()
+    public BaseRepository(ApplicationDbContext context)
     {
-        _context = new Context();
+        _context = context;
         _dbSet = _context.Set<T>();
     }
 
@@ -23,76 +21,47 @@ public class BaseRepository<T> where T : BaseModel
         return entity;
     }
 
-    public IQueryable<T> GetAll()
+    public IQueryable<T> GetAll() =>
+           _dbSet.Where(e => !e.IsDeleted);
+
+
+    public IQueryable<T> GetById(int id) => 
+           _dbSet.Where(m => m.ID == id && !m.IsDeleted);
+
+    public IQueryable<T> Find(Expression<Func<T, bool>> criteria) => 
+           _dbSet.Where(m => !m.IsDeleted).Where(criteria);
+
+    public async Task<bool> UpdateIncludeAsync(T entity, params string[] modifiedParams)
     {
-        var query = _dbSet.Where(e => !e.IsDeleted);
+        var local = _dbSet.Local.FirstOrDefault(m => m.ID == entity.ID);
 
-        return query;
-    }
+        EntityEntry entityEntry;
 
-    public async Task<T?> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
-    {
-        IQueryable<T> query = _dbSet;
-
-        if (includes != null && includes.Any())
+        if (local == null)
         {
-            foreach (var include in includes)
+            _dbSet.Attach(entity);
+            entityEntry = _dbSet.Entry(entity);
+        }
+        else
+        {
+            entityEntry = _context.ChangeTracker.Entries<T>().First(m => m.Entity.ID == entity.ID);
+        }
+
+        foreach (var propName in modifiedParams)
+        {
+            var propInfo = entity.GetType().GetProperty(propName);
+            if (propInfo != null)
             {
-                query = query.Include(include);
+                entityEntry.Property(propName).CurrentValue = propInfo.GetValue(entity);
+                entityEntry.Property(propName).IsModified = true;
             }
         }
 
-        return await query.FirstOrDefaultAsync(e => e.ID == id && !e.IsDeleted);
+        var result = await _context.SaveChangesAsync();
+        return result > 0 ? true : false;
     }
 
-    public IQueryable<T> QueryById(int id)
-    {
-        var query = _dbSet.Where(m => m.ID == id);
-
-        return query;
-    }
-
-    public async Task<T?> FindAsync(Expression<Func<T, bool>> criteria,
-        params Expression<Func<T, object>>[] includes)
-    {
-        IQueryable<T> query = _dbSet;
-
-        if (includes != null && includes.Any())
-        {
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-        }
-
-        return await query.FirstOrDefaultAsync(criteria);
-    }
-
-    public async Task<T?> FindAsync(
-        Expression<Func<T, bool>> criteria,
-        Func<IQueryable<T>,IQueryable<T>>? includes = null) 
-    {
-        IQueryable<T> query = _dbSet;
-
-        if (includes != null)
-            query = includes(query);
-
-        var result = await query.FirstOrDefaultAsync(criteria);
-
-        return result;
-    }
-
-
-    public async Task<int> UpdateAsync(
-        Expression<Func<T, bool>> predicate,
-        Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls)
-    {
-        var numUpdated = await _dbSet.Where(predicate).ExecuteUpdateAsync(setPropertyCalls);
-
-        return numUpdated;
-    }
-
-    public async Task DeleteAsync(T entity)
+    public async Task HardDeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync();
@@ -109,9 +78,7 @@ public class BaseRepository<T> where T : BaseModel
                     );
     }
 
-    public async Task<bool> AnyAsync(Expression<Func<T, bool>> criteria)
-    {
-        return await _dbSet.AnyAsync(criteria);
-    }
+    public async Task<bool> AnyAsync(Expression<Func<T, bool>> criteria) =>
+           await _dbSet.AnyAsync(criteria);
 
 }

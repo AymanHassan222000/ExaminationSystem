@@ -1,6 +1,13 @@
-﻿namespace ExaminationSystem.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public class Student : User
+namespace ExaminationSystem.Models;
+
+public class Student : BaseModel
 {
     public ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
+
+    public int UserID { get; set; }
+
+    [ForeignKey(nameof(UserID))]
+    public User User { get; set; }
 }

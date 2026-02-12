@@ -1,7 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.Models;
-
-namespace ExaminationSystem.DTOs.ChoiceDTOs;
+﻿namespace ExaminationSystem.DTOs.ChoiceDTOs;
 
 public class ChoiceDtoProfile : Profile
 {

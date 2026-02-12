@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.InstructorDTOs;
+﻿using ExaminationSystem.DTOs.InstructorDTOs;
 using ExaminationSystem.DTOs.IntructorDTOs;
 
 namespace ExaminationSystem.ViewModels.InstructorViewModels;
@@ -10,9 +9,12 @@ public class InstructorViewModelProfile : Profile
     {
         CreateMap<GetInstructorInfoDTO, GetInstructorInfoViewModel>();
 
-        CreateMap<AssignExamToCourseViewModel, AssignExamToCourseDTO>();
+        CreateMap<CreateExamManualViewModel, CreateExamManualDTO>();
 
-        CreateMap<AssignQuestionsToExamViewModel, AssignQuestionsToExamDTO>();
+        CreateMap<ResponseDTO<bool>, ResponseViewModel<bool>>();
 
+        CreateMap<CreateExamAutoViewModel, CreateExamAutoDTO>();
+
+        CreateMap<AssignExamToStudentViewModel, AssignExamToStudentDTO>();
     }
 }

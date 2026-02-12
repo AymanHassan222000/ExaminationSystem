@@ -1,19 +1,16 @@
-﻿using AutoMapper;
-using ExaminationSystem.Services;
-using ExaminationSystem.ViewModels.ResultEvaluationViewModels;
-using Microsoft.AspNetCore.Mvc;
+﻿using ExaminationSystem.ViewModels.ResultEvaluationViewModels;
 
 namespace ExaminationSystem.Controllers;
 
 [ApiController]
-[Route("[Controller]/[Action]")]
+[Route("api/[Controller]/[Action]")]
 public class ResultEvaluationController : ControllerBase
 {
-    ResultEvaluationService _resultEvaluationService;
-    IMapper _mapper;
-    public ResultEvaluationController(IMapper mapper)
+    private readonly IResultEvaluationService _resultEvaluationService;
+    private readonly IMapper _mapper;
+    public ResultEvaluationController(IMapper mapper, IResultEvaluationService resultEvaluationService)
     {
-        _resultEvaluationService = new ResultEvaluationService(mapper);
+        _resultEvaluationService = resultEvaluationService;
         _mapper = mapper;
     }
 

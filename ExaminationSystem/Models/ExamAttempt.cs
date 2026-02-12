@@ -6,9 +6,10 @@ public class ExamAttempt : BaseModel
 {
     public int ExamID { get; set; }
     public int StudentID { get; set; }
-    public DateTime StartedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
     public DateTime? SubmittedAt { get; set; }
-    public bool IsSubmitted { get; set; }
+    public bool IsSubmitted { get; set; } = false;
+    public bool IsTakenExam { get; set; } = false;
 
     [ForeignKey("ExamID")]
     public Exam Exam { get; set; }

@@ -1,20 +1,17 @@
-﻿using AutoMapper;
-using ExaminationSystem.DTOs.ChoiceDTOs;
-using ExaminationSystem.Services;
+﻿using ExaminationSystem.DTOs.ChoiceDTOs;
 using ExaminationSystem.ViewModels.ChoiceViewModel;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ExaminationSystem.Controllers;
 
 [ApiController]
-[Route("[Controller]/[Action]")]
+[Route("api/[Controller]/[Action]")]
 public class ChoicesController : ControllerBase
 {
-    ChoiceService _choiceService;
-    IMapper _mapper;
-    public ChoicesController(IMapper mapper)
+    private readonly IChoiceService _choiceService;
+    private readonly IMapper _mapper;
+    public ChoicesController(IMapper mapper,IChoiceService choiceService)
     {
-        _choiceService = new ChoiceService(mapper);
+        _choiceService = choiceService;
         _mapper = mapper;
     }
 
