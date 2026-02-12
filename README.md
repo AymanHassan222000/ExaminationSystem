@@ -37,7 +37,7 @@ Attempt multiple quizzes (only one final exam allowed)
 
 🏗️ Architecture
 
-The system follows Clean Architecture & Onion Architecture principles to ensure:
+The system follows Onion Architecture principles to ensure:
 
 Separation of concerns
 
@@ -49,11 +49,7 @@ Scalable structure
 
 Implemented patterns:
 
-CQRS
-
 Repository Pattern
-
-Unit of Work
 
 Dependency Injection
 
@@ -81,10 +77,6 @@ LINQ
 
 JWT Authentication
 
-Clean Architecture
-
-CQRS
-
 📊 Business Logic Highlights
 
 Automatic exam generation with difficulty balancing
@@ -98,10 +90,6 @@ Exam type restriction (Quiz / Final)
 Student exam attempt control logic
 
 📈 Non-Functional Requirements
-
-Supports up to 100 concurrent users
-
-99.9% uptime target
 
 Optimized performance and API response handling
 
@@ -117,10 +105,8 @@ Analytics dashboard
 
 Email notifications
 
-Docker deployment
-
 👨‍💻 Author
 
 Ayman Hassan
-Backend Developer – ASP.NET Core
+
 Passionate about building scalable and secure backend systems.
