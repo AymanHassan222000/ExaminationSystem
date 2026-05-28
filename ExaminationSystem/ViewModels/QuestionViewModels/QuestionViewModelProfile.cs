@@ -1,6 +1,11 @@
-﻿using ExaminationSystem.DTOs.QuestionDTOs;
-using ExaminationSystem.DTOs.ResponseDTOs;
-using ExaminationSystem.ViewModels.ResponseViewModels;
+﻿using ExaminationSystem.API.ViewModels.ChoiceViewModels;
+using ExaminationSystem.API.ViewModels.QuestionViewModels;
+using ExaminationSystem.BLL.DTOs.QuestionDTOs;
+using ExaminationSystem.DTOs;
+using ExaminationSystem.DTOs.ChoiceDTOs;
+using ExaminationSystem.DTOs.CourseDTOs;
+using ExaminationSystem.DTOs.QuestionDTOs;
+using ExaminationSystem.ViewModels.CourseViewModels;
 
 namespace ExaminationSystem.ViewModels.QuestionViewModel;
 
@@ -8,17 +13,24 @@ public class QuestionViewModelProfile : Profile
 {
     public QuestionViewModelProfile()
     {
-        CreateMap<CreateQuestionViewModel, CreateQuestionDTO>();
+        CreateMap<AddQuestionViewModel, AddQuestionDTO>()
+            .ForMember(dest => dest.Choices, opt => opt.MapFrom(src => src.Choices));
 
-        CreateMap<QuestionDetailsDTO, QuestionDetailsViewModel>();
+        CreateMap<GetAllQuestionsDTO, GetAllQuestionsViewModel>();
+
+        CreateMap<GetQuestionByIdResponseDTO, GetQuestionByIdResponseViewModel>()
+            .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course))
+            .ForMember(dest => dest.Choices, opt => opt.MapFrom(src => src.Choices));
+
+        CreateMap<GetCourseInfoDTO, GetCourseInfoViewModel>();
+        CreateMap<GetChoicesInfoDTO, GetChoicesInfoViewModel>();
 
         CreateMap<UpdateQuestionViewModel, UpdateQuestionDTO>();
 
-        CreateMap<ResponseDTO<QuestionDetailsDTO>, ResponseViewModel<QuestionDetailsViewModel>>()
-            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+        CreateMap<UpdateQuestionChoiceViewModel, UpdateQuestionChoiceDTO>();
 
-        CreateMap<ResponseDTO<IEnumerable<QuestionDetailsDTO>>, ResponseViewModel<IEnumerable<QuestionDetailsViewModel>>>()
-            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+        CreateMap<AddChoiceToQuestionViewModel, AddChoiceToQuestionDTO>()
+            .ForMember(dest => dest.Choices, opt => opt.MapFrom(src => src.Choices));
 
     }
 }

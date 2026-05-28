@@ -1,8 +1,9 @@
 ﻿namespace ExaminationSystem.ViewModels.QuestionViewModel;
 
-public class UpdateQuestionViewModel
-{
-    public string QuestionText { get; set; } = null!;
-    public QuestionLevel Level { get; set; }
+public record UpdateQuestionViewModel(
+    int ID,
+    string? Head = null,
+    int? Grade = null,
+    QuestionLevel? Level = null
+);
 
-}

@@ -2,11 +2,11 @@
 
 public class SuccessResponseViewModel<T> : ResponseViewModel<T>
 {
-    public SuccessResponseViewModel(T data, string message = "")
+    public SuccessResponseViewModel(T data, string message = "") : base(data,true,message)
     {
         Data = data;
         IsSuccess = true;
         Message = message;
-        ErrorCode = ErrorCode.NoError;
+        ErrorCode = ErrorCodes.NoError;
     }
 }
