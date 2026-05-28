@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.AuthDTOs;
+﻿using ExaminationSystem.BLL.Interfaces;
+using ExaminationSystem.DTOs.AuthDTOs;
 using ExaminationSystem.ViewModels.AuthViewModels;
 
 namespace ExaminationSystem.Controllers;

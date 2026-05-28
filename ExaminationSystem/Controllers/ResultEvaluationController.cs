@@ -1,44 +1,50 @@
-﻿using ExaminationSystem.ViewModels.ResultEvaluationViewModels;
+﻿using ExaminationSystem.API.ViewModels.ResultEvaluationViewModels;
+using ExaminationSystem.BLL.Interfaces;
+using ExaminationSystem.DTOs;
+using ExaminationSystem.DTOs.ResultEvaluationDTOs;
+using ExaminationSystem.Helpers.Mapping;
+using ExaminationSystem.ViewModels.ResponseViewModels;
+using ExaminationSystem.ViewModels.ResultEvaluationViewModels;
+using System.Collections.Generic;
 
 namespace ExaminationSystem.Controllers;
 
 [ApiController]
 [Route("api/[Controller]/[Action]")]
-public class ResultEvaluationController : ControllerBase
+public sealed class ResultEvaluationController : ControllerBase
 {
     private readonly IResultEvaluationService _resultEvaluationService;
-    private readonly IMapper _mapper;
-    public ResultEvaluationController(IMapper mapper, IResultEvaluationService resultEvaluationService)
+    public ResultEvaluationController(IResultEvaluationService resultEvaluationService)
     {
         _resultEvaluationService = resultEvaluationService;
-        _mapper = mapper;
     }
 
-    [HttpPost("{examAttemptId}")]
-    public async Task<IActionResult> EvaluateExamAsync(int examAttemptId)
+    [HttpPost("{examID}")]
+    [Authorize(Roles = "Student")]
+    public async Task<ResponseViewModel<EvaluateExamResponseViewModel>> EvaluateExamAsync(int examID)
     {
-        var evaluateExamResponseDto = await _resultEvaluationService.EvaluateExamAsync(examAttemptId);
+        var response = await _resultEvaluationService.EvaluateExamAsync(examID);
 
-        var evaluateExamResponseVM = _mapper.Map<EvaluateExamResponseViewModel>(evaluateExamResponseDto);
+        if (!response.IsSuccess)
+            return ResponseViewModel<EvaluateExamResponseViewModel>.Failure(response.ErrorCode, response.Message);
 
-        return Ok(evaluateExamResponseVM);
+        var evaluateExamResponseVM = AutoMapperHelper.Map<EvaluateExamResponseViewModel>(response.Data);
+
+        return ResponseViewModel<EvaluateExamResponseViewModel>.Success(evaluateExamResponseVM, response.Message);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAllStudentResultsAsync(int examId, int instructorId)
+    [HttpGet("{examID}")]
+    [Authorize(Roles = "Instructor,Admin")]
+    public async Task<ResponseViewModel<IEnumerable<ExamResultSummaryViewModel>>> GetAllStudentResultsAsync(int examID)
     {
-        var result = await _resultEvaluationService.GetAllStudentResultAsync(examId, instructorId);
+        var result = await _resultEvaluationService.GetAllStudentResultAsync(examID);
 
-        return Ok(result);
+        if (!result.IsSuccess)
+            return ResponseViewModel<IEnumerable<ExamResultSummaryViewModel>>.Failure(result.ErrorCode, result.Message);
+
+        var data = AutoMapperHelper.Map<IEnumerable<ExamResultSummaryViewModel>>(result.Data);
+
+        return ResponseViewModel<IEnumerable<ExamResultSummaryViewModel>>.Success(data, result.Message);
     }
 
-    [HttpGet("examAttemptId")]
-    public async Task<IActionResult> GetStudentResultAsync(int examAttemptId, int studentID)
-    {
-        var studentExamResultDto = await _resultEvaluationService.GetStudentExamResultAsync(examAttemptId, studentID);
-
-        var studentExamResultVM = _mapper.Map<StudentExamResultViewModel>(studentExamResultDto);
-
-        return Ok(studentExamResultVM);
-    }
 }

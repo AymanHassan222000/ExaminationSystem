@@ -1,4 +1,6 @@
-﻿using ExaminationSystem.DTOs.ExamDTOs;
+﻿using ExaminationSystem.API.ViewModels.ResultEvaluationViewModels;
+using ExaminationSystem.API.ViewModels.StudentViewModels;
+using ExaminationSystem.DTOs.ExamDTOs;
 using ExaminationSystem.DTOs.ResultEvaluationDTOs;
 using ExaminationSystem.ViewModels.ExamViewModels;
 
@@ -10,10 +12,11 @@ public class ResultEvaluationViewModelProfile : Profile
     {
         CreateMap<EvaluateExamResponseDTO, EvaluateExamResponseViewModel>();
 
-        CreateMap<StudentExamResultDTO, StudentExamResultViewModel>()
-            .ForMember(dest => dest.ExamInfo,opt => opt.MapFrom(src => src.ExamInfo));
-
         CreateMap<GetExamInfoDTO, GetExamInfoViewModel>();
+
+        CreateMap<ExamResultSummaryDTO, ExamResultSummaryViewModel>();
+
+        CreateMap<GetStudentInfoDTO, GetStudentInfoViewModel>();
 
     }
 }

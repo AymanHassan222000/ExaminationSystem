@@ -8,7 +8,6 @@ public class CourseDetailsViewModel
     public string Name { get; set; } = null!;
     public string Description { get; set; } = null!;
     public int Hours { get; set; }
-
-    public GetInstructorInfoViewModel instructorInfo { get; set; } 
+    public GetInstructorInfoViewModel Instructor { get; set; } 
 
 }

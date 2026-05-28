@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.ChoiceDTOs;
+﻿using ExaminationSystem.API.ViewModels.ChoiceViewModels;
+using ExaminationSystem.DTOs.ChoiceDTOs;
 
 namespace ExaminationSystem.ViewModels.ChoiceViewModel;
 
@@ -6,10 +7,14 @@ public class ChoiceViewModelProfile : Profile
 {
     public ChoiceViewModelProfile()
     {
-        CreateMap<CreateChoiceViewModel, CreateChoiceDTO>();
+        CreateMap<AddChoiceViewModel, AddChoiceDTO>();
 
-        CreateMap<ChoiceDetailsDTO, ChoiceDetailseViewModel>();
 
-        CreateMap<UpdateChoiceViewModel, UpdateChoiceDTO>();
+
+        //CreateMap<CreateChoiceViewModel, CreateChoiceDTO>();
+
+        //CreateMap<ChoiceDetailsDTO, ChoiceDetailseViewModel>();
+
+        //CreateMap<UpdateChoiceViewModel, UpdateChoiceDTO>();
     }
 }

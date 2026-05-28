@@ -1,79 +1,149 @@
-﻿using ExaminationSystem.DTOs.QuestionDTOs;
+﻿using ExaminationSystem.API.ViewModels.QuestionViewModels;
+using ExaminationSystem.BLL.DTOs.QuestionDTOs;
+using ExaminationSystem.BLL.Interfaces;
+using ExaminationSystem.DTOs;
+using ExaminationSystem.DTOs.QuestionDTOs;
+using ExaminationSystem.Helpers.Mapping;
 using ExaminationSystem.ViewModels.QuestionViewModel;
+using ExaminationSystem.ViewModels.ResponseViewModels;
+using FluentValidation;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ExaminationSystem.Controllers;
 
 [ApiController]
 [Route("api/[Controller]/[Action]")]
-public class QuestionsController : ControllerBase
+[Authorize(Roles = "Admin,Instructor")]
+public sealed class QuestionsController : ControllerBase
 {
     private readonly IQuestionService _questionService;
-    private readonly IMapper _mapper;
-    public QuestionsController(IMapper mapper, IQuestionService questionService)
+    private readonly IValidator<AddQuestionViewModel> _addQuestionValidator;
+    private readonly IValidator<UpdateQuestionViewModel> _updateQuestionValidator;
+    public QuestionsController(
+        IQuestionService questionService,
+        IValidator<AddQuestionViewModel> addQuestionValidator,
+        IValidator<UpdateQuestionViewModel> updateQuestionValidator)
     {
         _questionService = questionService;
-        _mapper = mapper;
+        _addQuestionValidator = addQuestionValidator;
+        _updateQuestionValidator = updateQuestionValidator;
     }
 
     [HttpPost]
-    public async Task<ResponseViewModel<QuestionDetailsViewModel>> AddQuestionAsync(CreateQuestionViewModel vm)
+    public async Task<ResponseViewModel<object>> AddQuestion(AddQuestionViewModel vm)
     {
-        if (!ModelState.IsValid)
-            return new FailureResponseViewModel<QuestionDetailsViewModel>(ErrorCode.InvalidModelState,ModelState.GetErrorMessages());
 
-        var createQuestionDto = _mapper.Map<CreateQuestionDTO>(vm);
+        var validator = _addQuestionValidator.Validate(vm);
 
-        var responseDto = await _questionService.AddQuestionAsync(createQuestionDto);
+        if (!validator.IsValid)
+        {
+            var errors = validator.Errors.Select(e => new Dictionary<string, string>
+            {
+                { e.PropertyName, e.ErrorMessage }
 
-        var responseVM = _mapper.Map<ResponseViewModel<QuestionDetailsViewModel>>(responseDto);
+            }).ToList();
+            return ResponseViewModel<object>.Failure(errors);
+        }
 
+        var addQuestionDto = AutoMapperHelper.Map<AddQuestionDTO>(vm);
 
-        return responseVM;
+        var responseDto = await _questionService.AddQuestionAsync(addQuestionDto);
+
+        return ResponseViewModel<object>.Success(responseDto.Data, responseDto.Message);
     }
 
     [HttpGet]
-    public async Task<ResponseViewModel<IEnumerable<QuestionDetailsViewModel>>> GetAllQuestions(int instructorID)
+    public async Task<ResponseViewModel<IEnumerable<GetAllQuestionsViewModel>>> GetAllQuestions()
     {
-        var responseDto = await _questionService.GetAllQuestionsAsync(instructorID);
+        var response = await _questionService.GetAllQuestionsAsync();
 
-        var responseVM = _mapper.Map<ResponseViewModel<IEnumerable<QuestionDetailsViewModel>>>(responseDto);
+        var data = AutoMapperHelper.Map<IEnumerable<GetAllQuestionsViewModel>>(response.Data);
 
-        return responseVM;
+        return ResponseViewModel<IEnumerable<GetAllQuestionsViewModel>>.Success(data, response.Message);
     }
 
-    [HttpGet("{questionID}")]
-    public async Task<ResponseViewModel<QuestionDetailsViewModel>> GetQuestionByIDAsync(int questionID,int instructorID)
+    [HttpGet("{id}")]
+    public async Task<ResponseViewModel<GetQuestionByIdResponseViewModel>> GetQuestionByID(int id)
     {
+        var response = await _questionService.GetQuestionByIDAsync(id);
 
-        var responseDto = await _questionService.GetQuestionByIDAsync(questionID,instructorID);
+        if (!response.IsSuccess)
+            return ResponseViewModel<GetQuestionByIdResponseViewModel>.Failure(response.ErrorCode, response.Message);
 
-        var responseVM = _mapper.Map<ResponseViewModel<QuestionDetailsViewModel>>(responseDto);
+        var data = AutoMapperHelper.Map<GetQuestionByIdResponseViewModel>(response.Data);
 
-        return responseVM;
+        return ResponseViewModel<GetQuestionByIdResponseViewModel>.Success(data, response.Message);
     }
 
-    [HttpPut("{questionID}")]
-    public async Task<ResponseViewModel<QuestionDetailsViewModel>> UpdateQuestionAsync(int questionID,int instructorID, UpdateQuestionViewModel vm)
+    [HttpPut]
+    public async Task<ResponseViewModel<object>> UpdateQuestion(UpdateQuestionViewModel vm)
     {
-        if (!ModelState.IsValid)
-            return new FailureResponseViewModel<QuestionDetailsViewModel>(ErrorCode.InvalidModelState,ModelState.GetErrorMessages());
+        var validator = _updateQuestionValidator.Validate(vm);
 
-        var updateQuestionDto = _mapper.Map<UpdateQuestionDTO>(vm);
+        if (!validator.IsValid)
+        {
+            var errors = validator.Errors.Select(e => new Dictionary<string, string>
+            {
+                { e.PropertyName, e.ErrorMessage }
 
-        var responseDto = await _questionService.UpdateQuestionAsync(questionID,instructorID,updateQuestionDto);
+            }).ToList();
+            return ResponseViewModel<object>.Failure(errors);
+        }
 
-        var responseVM = _mapper.Map<ResponseViewModel<QuestionDetailsViewModel>>(responseDto);
+        var updateQuestionDto = AutoMapperHelper.Map<UpdateQuestionDTO>(vm);
 
-        return responseVM;
+        var response = await _questionService.UpdateQuestionAsync(updateQuestionDto);
+
+        if (!response.IsSuccess)
+            return ResponseViewModel<object>.Failure(response.ErrorCode, response.Message);
+
+        return ResponseViewModel<object>.Success(response.ErrorCode, response.Message);
     }
 
-    [HttpDelete("{questionID}")]
-    public async Task<ResponseViewModel<QuestionDetailsViewModel>> DeleteQuestionHardAsync(int questionID, int instructorID)
+    [HttpDelete("{id}")]
+    public async Task<ResponseViewModel<object>> DeleteQuestion(int id)
     {
-        var responseDto = await _questionService.DeleteQuestionAsync(questionID, instructorID);
-        var responseVM = _mapper.Map<ResponseViewModel<QuestionDetailsViewModel>>(responseDto);
+        var response = await _questionService.DeleteQuestionAsync(id);
 
-        return responseVM;
+        if (!response.IsSuccess)
+            return ResponseViewModel<object>.Failure(response.ErrorCode, response.Message);
+
+        return ResponseViewModel<object>.Success(response.Data, response.Message);
+    }
+
+    [HttpPost]
+    public async Task<ResponseViewModel<bool>> AddChoicesToQeustion(AddChoiceToQuestionViewModel vm)
+    {
+        var response = await _questionService.AddChoicesToQustion(AutoMapperHelper.Map<AddChoiceToQuestionDTO>(vm));
+
+        if (!response.IsSuccess)
+            return ResponseViewModel<bool>.Failure(response.ErrorCode, response.Message);
+
+        return ResponseViewModel<bool>.Success(response.Data, response.Message);
+    }
+
+    [HttpDelete("{choiceID}")]
+    public async Task<Response<bool>> RemoveChoiceFromQuestion(int choiceID)
+    {
+        var response = await _questionService.RemoveChoiceFromQuestionAsync(choiceID);
+        return response;
+    }
+
+    [HttpPut("{choiceID}")]
+    public async Task<ResponseViewModel<bool>> UpdateQuestionChoice(int choiceID, UpdateQuestionChoiceViewModel vm)
+    {
+        if (vm.ChoiceID != choiceID)
+            return ResponseViewModel<bool>.Failure(ErrorCodes.IdMismatch, "ID in URL does not match ID in body.");
+
+        var dto = AutoMapperHelper.Map<UpdateQuestionChoiceDTO>(vm);
+
+        var response = await _questionService.UpdateQuestionChoice(dto);
+
+        if (!response.IsSuccess)
+            return ResponseViewModel<bool>.Failure(response.ErrorCode, response.Message);
+
+        return ResponseViewModel<bool>.Success(response.Data, response.Message);
     }
 
 }
+

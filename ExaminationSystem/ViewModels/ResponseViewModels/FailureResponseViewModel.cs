@@ -2,10 +2,12 @@
 
 public class FailureResponseViewModel<T> : ResponseViewModel<T>
 {
-    public FailureResponseViewModel(ErrorCode errorCode, string message)
+    public FailureResponseViewModel(ErrorCodes errorCode, string? message = null): base(default,false,message)
     {
         ErrorCode = errorCode;
         Message = message;
         IsSuccess = false;
+        Errors = null;
+        Data = default;
     }
 }

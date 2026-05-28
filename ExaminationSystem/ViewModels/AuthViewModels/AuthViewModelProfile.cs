@@ -1,4 +1,5 @@
-﻿using ExaminationSystem.DTOs.AuthDTOs;
+﻿using ExaminationSystem.DTOs;
+using ExaminationSystem.DTOs.AuthDTOs;
 
 namespace ExaminationSystem.ViewModels.AuthViewModels;
 
@@ -8,7 +9,7 @@ public class AuthViewModelProfile : Profile
     {
         CreateMap<LoginRequestViewModel, LoginRequestDTO>();
 
-        CreateMap<ResponseDTO<AuthResponseDTO>, ResponseViewModel<AuthResponseViewModel>>()
+        CreateMap<Response<AuthResponseDTO>, ResponseViewModel<AuthResponseViewModel>>()
                 .ForMember(dest => dest.Data,opt => opt.MapFrom(src => src.Data));
 
         CreateMap<AuthResponseDTO, AuthResponseViewModel>();

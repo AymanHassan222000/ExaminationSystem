@@ -1,13 +1,8 @@
 ﻿namespace ExaminationSystem.ViewModels.ResultEvaluationViewModels;
 
-public class EvaluateExamResponseViewModel
-{
-    public int ExamAttemptID { get; set; }
-
-    public int TotalQuestions { get; set; }
-    public int CorrectAnswers { get; set; }
-
-    public double Percentage { get; set; }
-    public bool IsPassed { get; set; }
-
-}
+public record EvaluateExamResponseViewModel(
+    int ExamDegree,
+    int StudentScore,
+    double Percentage,
+    bool IsPassed
+);

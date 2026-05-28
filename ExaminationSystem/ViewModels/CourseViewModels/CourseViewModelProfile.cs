@@ -1,6 +1,6 @@
-﻿using ExaminationSystem.DTOs.CourseDTOs;
-using ExaminationSystem.DTOs.ResponseDTOs;
-using ExaminationSystem.ViewModels.ResponseViewModels;
+﻿using ExaminationSystem.API.ViewModels.CourseViewModels;
+using ExaminationSystem.BLL.DTOs.CourseDTOs;
+using ExaminationSystem.DTOs.CourseDTOs;
 
 namespace ExaminationSystem.ViewModels.CourseViewModels;
 
@@ -8,17 +8,25 @@ public class CourseViewModelProfile : Profile
 {
     public CourseViewModelProfile()
     {
+        //Mapping for Add Course
+        CreateMap<AddCourseViewModel, AddCourseDTO>();
+
+        //Mapping for Enroll Student in Course
+        CreateMap<EnrollStudentInCourseViewModel, EnrollStudentInCourseDTO>();
+
+        //Mapping for Add Course Prerequisite
+        CreateMap<AddCoursePrerequisiteViewModel, AddCoursePrerequisiteDTO>()
+            .ForMember(dest => dest.Prerequisites, opt => opt.MapFrom(src => src.Prerequisites));
+
+        CreateMap<PrerequisiteCourseViewModel, PrerequisiteCourseDTO>();
+
+        //Mapping for course details
         CreateMap<CourseDetailsDTO, CourseDetailsViewModel>();
 
-        CreateMap<CreateCourseViewModel, CreateCourseDTO>();
-
+        //Mapping for update course
         CreateMap<UpdateCourseViewModel, UpdateCourseDTO>();
 
-        CreateMap<ResponseDTO<CourseDetailsDTO>,ResponseViewModel<CourseDetailsViewModel>>()
-            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
-
-        CreateMap<ResponseDTO<IEnumerable<CourseDetailsDTO>>,ResponseViewModel<IEnumerable<CourseDetailsViewModel>>>()
-            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
-
+        //Mapping for remove course prerequiste
+        CreateMap<RemoveCoursePrerequisiteViewModel, RemoveCoursePrerequisiteDTO>();
     }
 }
