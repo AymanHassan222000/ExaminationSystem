@@ -1,112 +1,92 @@
-🧠 Online Examination Management System
+# Online Examination Management System
 
-A scalable web-based Examination and Quiz Management System that enables instructors to create and manage courses, quizzes, and final exams, while allowing students to participate in exams and view their results.
+A scalable, web-based platform for managing examinations and quizzes. Designed to empower instructors to create and administer courses, quizzes, and final exams, while providing students with a secure and seamless assessment experience.
 
-The system is designed with clean architecture principles, focusing on maintainability, scalability, security, and performance.
+Built with clean architecture principles, emphasizing **maintainability**, **scalability**, **security**, and **performance**.
 
-🚀 Features
-👨‍🏫 Instructor
+---
 
-Create, edit, and delete courses
+## Features
 
-Create quizzes and final exams
+### Instructor
+- Create, edit, and delete courses
+- Create and manage quizzes and final exams
+- Add questions with configurable difficulty levels (Simple, Medium, Hard)
+- Reuse questions across multiple exams
+- Manually assign or automatically generate exams with balanced difficulty distribution
+- Assign students to courses and exams
+- View and track student exam results
 
-Add and manage questions with difficulty levels (Simple, Medium, Hard)
+### Student
+- Register and log in securely
+- Take quizzes and final exams
+- View results immediately upon submission
+- Attempt multiple quizzes (one final exam attempt allowed per course)
 
-Reuse questions across multiple exams
+---
 
-Manually assign questions to exams
+## Architecture
 
-Automatically generate exams with balanced difficulty distribution
+The system is built following **Layered Architecture** principles to ensure a clean separation of concerns, high maintainability, and testability.
 
-Assign students to courses and exams
+**Design Patterns Applied:**
+- Repository Pattern
+- Dependency Injection
 
-View students' exam results
+---
 
-👨‍🎓 Student
+## Security
 
-Register and log in securely
+| Feature | Details |
+|---|---|
+| Authentication | JWT Bearer Tokens with **Refresh Token** support |
+| Authorization | Role-based access control (Instructor / Student) |
+| Token Refresh | Secure refresh token rotation to maintain user sessions |
+| Access Control | Exam-level security tied to enrolled roles |
+| Data Transmission | Encrypted communication across all endpoints |
 
-Enroll in assigned courses
+> **Refresh Token Flow:** Upon login, the API issues both a short-lived JWT access token and a long-lived refresh token. When the access token expires, clients use the refresh token endpoint to obtain a new access token without requiring re-authentication, ensuring a seamless and secure user experience.
 
-Take quizzes and final exams
+---
 
-View exam results upon submission
+## Tech Stack
 
-Attempt multiple quizzes (only one final exam allowed)
+- **Framework:** ASP.NET Core Web API
+- **Language:** C#
+- **ORM:** Entity Framework Core
+- **Database:** SQL Server
+- **Query Language:** LINQ
+- **Authentication:** JWT + Refresh Tokens
 
-🏗️ Architecture
+---
 
-The system follows Onion Architecture principles to ensure:
+## Business Logic Highlights
 
-Separation of concerns
+- Automatic exam generation with difficulty-level balancing
+- Role-based resource visibility (instructors see only their own content)
+- Exam type enforcement (Quiz vs. Final Exam)
+- Student attempt restriction logic (single final exam attempt per course)
 
-High maintainability
+---
 
-Testability
+## Non-Functional Requirements
 
-Scalable structure
+- Optimized API response times and efficient database queries
+- Clean, well-structured, and documented codebase
+- Designed for horizontal scalability
 
-Implemented patterns:
+---
 
-Repository Pattern
+## Planned Enhancements
 
-Dependency Injection
+- [ ] Timer-based exam sessions
+- [ ] Pagination and advanced filtering
+- [ ] Analytics dashboard for instructors
+- [ ] Email notifications for exam assignments and results
 
-🔐 Security
+---
 
-JWT-based Authentication
+## Author
 
-Role-Based Authorization (Instructor / Student)
-
-Secure exam access control
-
-Encrypted data transmission
-
-⚙️ Tech Stack
-
-ASP.NET Core Web API
-
-Entity Framework Core
-
-SQL Server
-
-C#
-
-LINQ
-
-JWT Authentication
-
-📊 Business Logic Highlights
-
-Automatic exam generation with difficulty balancing
-
-Role-based access control
-
-Instructor-specific resource visibility
-
-Exam type restriction (Quiz / Final)
-
-Student exam attempt control logic
-
-📈 Non-Functional Requirements
-
-Optimized performance and API response handling
-
-Clean, maintainable, and well-documented codebase
-
-📌 Future Enhancements
-
-Timer-based exams
-
-Pagination & filtering
-
-Analytics dashboard
-
-Email notifications
-
-👨‍💻 Author
-
-Ayman Hassan
-
-Passionate about building scalable and secure backend systems.
+**Ayman Hassan**  
+Full Stack Developer passionate about building scalable, secure, and maintainable systems.
