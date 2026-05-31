@@ -4,6 +4,6 @@ namespace ExaminationSystem.DAL.Services.Interfaces;
 
 public interface ICurrentUserService
 {
-    int UserID { get; }
+    int? UserID { get; }
     UserRoles Role { get; }
 }

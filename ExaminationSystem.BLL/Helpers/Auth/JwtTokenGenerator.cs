@@ -15,21 +15,21 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         _jwt = jwt.Value;
     }
 
-    public string GenerateToken(User user) 
+    public string GenerateToken(int userID, string email, int roleID) 
     {
         var key = Encoding.ASCII.GetBytes(_jwt.Key);
         var tokenHandler = new JwtSecurityTokenHandler();
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            //Issuer = _jwt.Issure,
-            //Audience = _jwt.Audience,
+            Issuer = _jwt.Issure,
+            Audience = _jwt.Audience,
 
             Expires = DateTime.UtcNow.AddMinutes(_jwt.Lifetime),
             Subject = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier,user.ID.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, $"{(UserRoles)user.RoleId}")
+                new Claim(ClaimTypes.NameIdentifier,userID.ToString()),
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Role, $"{(UserRoles)roleID}")
             }),
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),

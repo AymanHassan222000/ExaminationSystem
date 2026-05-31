@@ -206,7 +206,7 @@ public class QuestionService : IQuestionService
 
         if (_currentUserService.Role == UserRoles.Instructor)
         {
-            var isAuthorize = await _courseService.IsAuthorizeInstructorAsync(courseID, _currentUserService.UserID);
+            var isAuthorize = await _courseService.IsAuthorizeInstructorAsync(courseID, _currentUserService.UserID ?? 0);
 
             if (!isAuthorize)
                 return new ValidationResult(ErrorCodes.CourseNotFound, "You can't add question to this course.");

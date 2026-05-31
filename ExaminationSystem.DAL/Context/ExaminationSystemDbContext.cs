@@ -32,10 +32,10 @@ public class ExaminationSystemDbContext : DbContext
             switch (entry.State)
             {
                 case EntityState.Added:
-                    entry.Entity.CreatedBy = _currentUserService.UserID;
+                    entry.Entity.CreatedBy = _currentUserService.UserID ?? 0;
                     break;
                 case EntityState.Modified:
-                    entry.Entity.UpdatedBy = _currentUserService.UserID;
+                    entry.Entity.UpdatedBy = _currentUserService.UserID ?? 0;
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
                     break;
                 case EntityState.Deleted:

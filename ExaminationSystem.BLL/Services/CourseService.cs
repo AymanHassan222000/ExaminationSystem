@@ -242,7 +242,7 @@ public class CourseService : ICourseService
         //Check if instructor can add students to this course or not.
         if (_currentUserService.Role == UserRoles.Instructor)
         {
-            var isAuthorizeInstructor = await IsAuthorizeInstructorAsync(courseID, _currentUserService.UserID);
+            var isAuthorizeInstructor = await IsAuthorizeInstructorAsync(courseID, _currentUserService.UserID ?? 0);
 
             if (!isAuthorizeInstructor)
                 return new ValidationResult(ErrorCodes.UnAuthorized, "You can't add student to this course.");

@@ -9,9 +9,6 @@ public class AuthViewModelProfile : Profile
     {
         CreateMap<LoginRequestViewModel, LoginRequestDTO>();
 
-        CreateMap<Response<AuthResponseDTO>, ResponseViewModel<AuthResponseViewModel>>()
-                .ForMember(dest => dest.Data,opt => opt.MapFrom(src => src.Data));
-
         CreateMap<AuthResponseDTO, AuthResponseViewModel>();
 
         CreateMap<RegisterStudentViewModel, RegisterStudentDTO>();

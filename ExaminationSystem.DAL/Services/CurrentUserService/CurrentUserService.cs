@@ -14,18 +14,16 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public int UserID
+    public int? UserID
     {
         get
         {
-            var userIdClaim = _httpContextAccessor.HttpContext?
-                                                  .User?
-                                                  .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = _httpContextAccessor.HttpContext?.User
+            ?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (int.TryParse(userIdClaim, out int userId))
-                return userId;
-
-            throw new UnauthorizedAccessException("Invalid or missing User ID claim");
+            return int.TryParse(userId, out var id)
+                ? id
+                : null;
         }
     }
 
