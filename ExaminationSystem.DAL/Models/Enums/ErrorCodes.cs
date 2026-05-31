@@ -6,6 +6,7 @@ public enum ErrorCodes
 
     ValidationError = 1,
     IdMismatch,
+    TokenIsRequired,
 
     //Courses
     InvalidCourseID = 101,

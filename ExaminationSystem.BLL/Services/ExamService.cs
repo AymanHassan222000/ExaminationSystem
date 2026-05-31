@@ -188,6 +188,9 @@ public class ExamService : IExamService
 
     public async Task<Response<GetExamByIdDTO>> TakeExamAsync(int examID)
     {
+        if (_currentUserService.UserID is null)
+            throw new Exception("User Id is null.");
+
         //Take Exam Validation
         var examAttemptInfo = await _examAttemptRepo.Get(a => a.ExamID == examID && a.StudentID == _currentUserService.UserID)
                                                     .Select(m => new { m.ID, m.IsTakenExam })
@@ -208,7 +211,7 @@ public class ExamService : IExamService
         var examAttempt = new ExamAttempt
         {
             ExamID = examAttemptInfo.ID,
-            StudentID = _currentUserService.UserID,
+            StudentID = _currentUserService.UserID ?? 0,
             IsTakenExam = true,
             StartedAt = DateTime.Now,
             EndedAt = DateTime.Now.AddMinutes(response.Data.DurationInMinutes)
@@ -271,7 +274,7 @@ public class ExamService : IExamService
         var attempt = new ExamAttempt
         {
             ID = examAttemptInfo.ID,
-            StudentID = _currentUserService.UserID,
+            StudentID = _currentUserService.UserID ?? 0,
             IsSubmitted = true,
             SubmittedAt = DateTime.Now
         };
@@ -307,7 +310,7 @@ public class ExamService : IExamService
     {
         if (_currentUserService.Role == UserRoles.Instructor)
         {
-            var isAuthorize = await _courseService.IsAuthorizeInstructorAsync(courseID, _currentUserService.UserID);
+            var isAuthorize = await _courseService.IsAuthorizeInstructorAsync(courseID, _currentUserService.UserID ?? 0);
 
             if (!isAuthorize)
                 return new ValidationResult(ErrorCodes.UnAuthorized, "You can't add exame to this course.");
@@ -333,7 +336,7 @@ public class ExamService : IExamService
     {
         if (_currentUserService.Role == UserRoles.Instructor)
         {
-            var isAuthorize = await _courseService.IsAuthorizeInstructorAsync(dto.CourseID, _currentUserService.UserID);
+            var isAuthorize = await _courseService.IsAuthorizeInstructorAsync(dto.CourseID, _currentUserService.UserID ?? 0);
 
             if (!isAuthorize)
                 return new ValidationResult(ErrorCodes.UnAuthorized, "You can't add exame to this course.");
@@ -394,7 +397,7 @@ public class ExamService : IExamService
         }
         else if (_currentUserService.Role == UserRoles.Student)
         {
-            var isEnrolled = await _courseService.IsEnrolledStudentAsync(examInfo.CourseID, _currentUserService.UserID);
+            var isEnrolled = await _courseService.IsEnrolledStudentAsync(examInfo.CourseID, _currentUserService.UserID ?? 0);
 
             if (!isEnrolled)
                 return new ValidationResult(ErrorCodes.UnAuthorized, "You are not enrolled in this course.");

@@ -15,12 +15,13 @@ namespace ExaminationSystem.API;
 
 public static class APIDependencyInjection
 {
-    public static IServiceCollection AddPresentationDependencies(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment) 
+    public static IServiceCollection AddPresentationDependencies(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection") ??
             throw new InvalidOperationException("Connection string 'DefaultConnection' not found");
 
-        services.AddDbContext<ExaminationSystemDbContext>(options => {
+        services.AddDbContext<ExaminationSystemDbContext>(options =>
+        {
 
             options.UseSqlServer(connectionString);
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
@@ -102,30 +103,25 @@ public static class APIDependencyInjection
             {
                 ValidateIssuer = false,
                 ValidateAudience = false,
-                ValidateLifetime = false,
+                ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
 
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                //ClockSkew = TimeSpan.Zero,
+                ClockSkew = TimeSpan.Zero,
 
-                //ValidIssuer = builder.Configuration("JWT:Issure"),
-                //ValidAudience = "Front_ExaminationSystem"
-
-                //ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-                //ValidAudience = builder.Configuration["JWT:ValidAudience"],
-                //IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes()))
+                ValidIssuer = configuration["JWT:Issure"],
+                ValidAudience = "Front_ExaminationSystem",
             };
         });
 
         services.AddAuthorization();
 
-        //builder.Services.AddAuthorization(options => 
-        //{
-        //    options.AddPolicy("All", policy => policy.RequireRole("Instructor","Student","Admin"));
-        //    options.AddPolicy("Instructor", policy => policy.RequireRole("Instructor"));
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("All", policy => policy.RequireRole("Instructor", "Student", "Admin"));
+            options.AddPolicy("Instructor", policy => policy.RequireRole("Instructor"));
 
-        //});
-
+        });
 
 
         return services;

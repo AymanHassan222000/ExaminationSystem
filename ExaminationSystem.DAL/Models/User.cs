@@ -23,6 +23,6 @@ namespace ExaminationSystem.DAL.Models
         
         public Instructor Instructor { get; set; }
         public Student Student { get; set; }
-
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new HashSet<RefreshToken>();
     }
 }

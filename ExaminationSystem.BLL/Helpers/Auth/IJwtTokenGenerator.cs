@@ -4,5 +4,5 @@ namespace ExaminationSystem.Helpers.Auth;
 
 public interface IJwtTokenGenerator
 {
-    string GenerateToken(User user);
+    string GenerateToken(int userID, string email, int roleID);
 }
