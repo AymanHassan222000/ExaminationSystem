@@ -57,6 +57,7 @@ The system is built following **Layered Architecture** principles to ensure a cl
 - **Database:** SQL Server
 - **Query Language:** LINQ
 - **Authentication:** JWT + Refresh Tokens
+- **Validation:** FluentValidation
 
 ---
 
